@@ -17,7 +17,12 @@ const AddSubCategory = () => {
 
   const [createSubcategory] = useCreateSubcategoryMutation();
   const { data: categoriesResponse } = useGetAllCategoriesQuery();
-  const categories = categoriesResponse?.data || [];
+  
+const categories = categoriesResponse?.data?.categories || 
+                  categoriesResponse?.categories || 
+                  categoriesResponse?.data || 
+                  categoriesResponse || 
+                  [];
 
   // Form state
   const [formData, setFormData] = useState({
@@ -150,9 +155,7 @@ const AddSubCategory = () => {
       newErrors.name = 'Subcategory name is required';
     }
 
-    if (!formData.description.trim()) {
-      newErrors.description = 'Subcategory description is required';
-    }
+
 
     if (!formData.categoryId || formData.categoryId === '') { // Updated to categoryId
       newErrors.categoryId = 'Please select a category'; // Updated error key
@@ -276,11 +279,10 @@ const AddSubCategory = () => {
 
                       <motion.div variants={itemVariants}>
                         <TextArea
-                          label="Description *"
+                          label="Description"
                           name="description"
                           value={formData.description}
                           onChange={handleInputChange}
-                          required
                           placeholder="Describe this subcategory..."
                           rows={4}
                           error={errors.description}

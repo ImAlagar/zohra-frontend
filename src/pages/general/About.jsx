@@ -1,175 +1,209 @@
-import React from "react";
-import { motion } from "framer-motion";
-import { FaTshirt, FaHandshake, FaRegLightbulb } from "react-icons/fa";
-import { MdFactory } from "react-icons/md";
-import { useTheme } from "../../context/ThemeContext";
-
+import React from 'react'
+import { useTheme } from '../../context/ThemeContext'
+import { 
+  Moon, 
+  Sun, 
+  Star, 
+  Sparkles, 
+  Shield, 
+  Heart, 
+  Leaf, 
+  Package,
+  ChevronRight,
+  Sparkle,
+  BedDouble,
+  Users
+} from 'lucide-react' // Import specific icons[citation:1]
 
 const About = () => {
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme()
 
-  const bgColor =
-    theme === "dark"
-      ? "bg-gray-900 text-gray-100"
-      : "bg-white text-gray-800";
+  const features = [
+    {
+      icon: <Sparkles size={28} className="text-purple-500 dark:text-purple-400" />,
+      title: "Luxurious Fabrics",
+      description: "Premium materials for ultimate comfort"
+    },
+    {
+      icon: <Leaf size={28} className="text-green-500 dark:text-green-400" />,
+      title: "Eco-Friendly",
+      description: "Sustainable and responsibly sourced"
+    },
+    {
+      icon: <Heart size={28} className="text-pink-500 dark:text-pink-400" />,
+      title: "Designed with Love",
+      description: "Every piece crafted with care"
+    },
+    {
+      icon: <Shield size={28} className="text-blue-500 dark:text-blue-400" />,
+      title: "Quality Assured",
+      description: "Built to last with premium craftsmanship"
+    }
+  ]
 
-  const cardColor =
-    theme === "dark" ? "bg-gray-800 text-gray-100" : "bg-gray-50 text-gray-800";
+  const values = [
+    {
+      icon: <Sparkle size={24} />,
+      text: "Comfort as a priority"
+    },
+    {
+      icon: <BedDouble size={24} />,
+      text: "Restful sleep guaranteed"
+    },
+    {
+      icon: <Users size={24} />,
+      text: "Community focused"
+    },
+    {
+      icon: <Package size={24} />,
+      text: "Ethical packaging"
+    }
+  ]
 
   return (
-    <section
-      className={`min-h-screen px-6 md:px-20 py-8 lg:py-8  pb-16 ${bgColor} transition-all duration-500`}
-      id="about-us"
-    >
-      <motion.h2
-        className="text-center text-4xl font-italiana tracking-widest md:text-5xl font-semibold mb-10"
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-      >
-        About Us –{" "}
-        <span className="text-purple-600 font-bold">Hanger Garments</span>
-      </motion.h2>
+    <div className="min-h-screen bg-gradient-to-b from-primary/30 via-white to-primary/10 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 transition-colors duration-300">
+      {/* Header with Theme Toggle */}
+      <div className="container mx-auto px-4 py-8">
+        <div className="flex justify-end mb-8">
+          <button
+            onClick={toggleTheme}
+            className="p-3 rounded-full bg-primary dark:bg-gray-800 shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2 group"
+            aria-label="Toggle theme"
+          >
+            {theme === 'light' ? (
+              <>
+                <Moon size={20} className="text-gray-700 dark:text-gray-200" />
+                <span className="font-ui text-sm text-gray-700 dark:text-gray-200 hidden sm:inline">Dark Mode</span>
+              </>
+            ) : (
+              <>
+                <Sun size={20} className="text-gray-200" />
+                <span className="font-ui text-sm text-gray-200 hidden sm:inline">Light Mode</span>
+              </>
+            )}
+          </button>
+        </div>
 
-      <div className="grid lg:grid-cols-2 font-instrument tracking-wider gap-10 items-start">
-        {/* Left Column - Story */}
-        <motion.div
-          className="space-y-10 leading-relaxed"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          {/* Beginning */}
-          <div>
-            <h3 className="text-xl font-semibold mb-2 text-purple-600">
-              🧵 Our Beginning
-            </h3>
-            <p>
-              <strong>Hanger Garments</strong>, founded by{" "}
-              <strong>Mrs. Kasthuri Dinesh, MBA</strong>, is a new-age apparel
-              brand built on a proud <strong>50+ year family legacy</strong> in
-              the garment industry established by{" "}
-              <strong>Mr. E. Shanmugam</strong>.
-            </p>
+        {/* Hero Section */}
+        <div className="text-center mb-16 relative">
+          <div className="absolute -top-6 left-1/2 transform -translate-x-1/2">
+            <Star className="w-12 h-12 text-purple-400/30 dark:text-purple-500/30 animate-pulse" />
           </div>
+          <h1 className="font-heading text-5xl md:text-6xl lg:text-7xl text-gray-900 dark:text-white mb-6 tracking-tight">
+            About <span className="text-purple-600 dark:text-purple-400">Zohra</span>
+          </h1>
+          <p className="font-subheading text-xl md:text-2xl text-gray-600 dark:text-gray-300 italic max-w-3xl mx-auto">
+            Where dreams are woven into the fabric of night
+          </p>
+        </div>
 
-          {/* Growth */}
-          <div>
-            <h3 className="text-xl font-semibold mb-2 text-purple-600">
-              🌱 Our Growth
-            </h3>
-            <p>
-              What began with his dedication, skill, and craftsmanship has now
-              evolved into a modern manufacturing unit known for{" "}
-              <strong>quality, consistency, and innovation</strong>.
-            </p>
-          </div>
-
-          {/* Expertise */}
-          <div>
-            <h3 className="text-xl font-semibold mb-2 text-purple-600">
-              👕 Our Expertise
-            </h3>
-            <p>
-              Based in <strong>Tiruppur – The Knitwear Capital of India</strong>,
-              we specialize in <strong>Round Neck T-shirts, Polo T-shirts,
-              Sweatshirts, Hoodies</strong>, and custom-made apparel designed for
-              comfort and durability.
-            </p>
-          </div>
-
-          {/* Partnerships */}
-          <div>
-            <h3 className="text-xl font-semibold mb-2 text-purple-600">
-              🤝 Our Partnerships
-            </h3>
-            <p>
-              We proudly manage <strong>white-label manufacturing</strong> for
-              leading fashion brands and have partnered with{" "}
-              <strong>150+ brands</strong> to bring their clothing lines to life.
-              Alongside this, we’re developing our own in-house brands that
-              reflect modern fashion trends and premium standards.
-            </p>
-          </div>
-
-          {/* Promise */}
-          <div>
-            <h3 className="text-xl font-semibold mb-2 text-purple-600">
-              ✨ Our Promise
-            </h3>
-            <p>
-              At Hanger Garments, every piece is crafted with{" "}
-              <strong>passion, precision, and purpose</strong> — ensuring superior
-              fabric quality, fine stitching, and timely delivery.
-            </p>
-          </div>
-        </motion.div>
-
-        {/* Right Column - Why Choose / Vision / Promise */}
-        <motion.div
-          className={`rounded-2xl shadow-lg p-8 space-y-6 ${cardColor}`}
-          initial={{ opacity: 0, x: 50 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.4 }}
-        >
-          <h3 className="text-2xl font-semibold text-center mb-6">
-            Why Choose Us?
-          </h3>
-
-          <div className="space-y-5">
-            <div className="flex items-start gap-3">
-              <MdFactory className="text-2xl text-purple-600 mt-1" />
-              <div>
-                <h4 className="font-bold">Modern Manufacturing</h4>
-                <p>Advanced machinery ensuring precision and consistency.</p>
-              </div>
+        {/* Main Content */}
+        <div className="max-w-6xl mx-auto">
+          {/* Mission Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-3xl shadow-2xl p-8 md:p-12 mb-12 transition-all duration-300 hover:shadow-3xl">
+            <div className="flex items-center gap-3 mb-6">
+              <Sparkles className="w-8 h-8 text-purple-500 dark:text-purple-400" />
+              <h2 className="font-heading text-3xl md:text-4xl text-gray-900 dark:text-white">
+                Our Mission
+              </h2>
             </div>
+            <p className="font-body text-lg text-gray-700 dark:text-gray-300 leading-relaxed mb-6">
+              At Zohra, we believe that the night is a sacred time for restoration and dreams. 
+              We craft nightwear that transforms bedtime into a luxurious ritual, combining 
+              elegant design with unparalleled comfort. Each piece is thoughtfully designed 
+              to make you feel beautiful, comfortable, and truly yourself.
+            </p>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-8">
+              {values.map((value, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="text-purple-500 dark:text-purple-400">
+                    {value.icon}
+                  </div>
+                  <span className="font-ui text-sm text-gray-600 dark:text-gray-400">
+                    {value.text}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
 
-            <div className="flex items-start gap-3">
-              <FaTshirt className="text-2xl text-indigo-600 mt-1" />
-              <div>
-                <h4 className="font-bold">Quality & Comfort</h4>
-                <p>
-                  Premium fabrics and stitching standards for long-lasting wear.
+          {/* Features Grid */}
+          <div className="mb-16">
+            <h2 className="font-heading text-3xl md:text-4xl text-center text-gray-900 dark:text-white mb-12">
+              Why Choose Zohra
+            </h2>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {features.map((feature, index) => (
+                <div 
+                  key={index}
+                  className="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
+                >
+                  <div className="mb-4">
+                    {feature.icon}
+                  </div>
+                  <h3 className="font-subheading text-xl text-gray-900 dark:text-white mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="font-body text-gray-600 dark:text-gray-400">
+                    {feature.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Story Section */}
+          <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+            <div>
+              <h2 className="font-heading text-3xl md:text-4xl text-gray-900 dark:text-white mb-6">
+                Our Story
+              </h2>
+              <div className="space-y-4">
+                <p className="font-body text-gray-700 dark:text-gray-300">
+                  Founded with a vision to redefine nighttime luxury, Zohra began as a simple 
+                  idea: why should beautiful, comfortable nightwear be a luxury?
                 </p>
+                <p className="font-body text-gray-700 dark:text-gray-300">
+                  We started with locally sourced fabrics and a small collection, growing 
+                  through word-of-mouth recommendations from customers who experienced 
+                  the difference quality sleepwear makes.
+                </p>
+                <button className="inline-flex items-center gap-2 mt-6 px-6 py-3 bg-purple-500 hover:bg-purple-600 dark:bg-purple-600 dark:hover:bg-purple-700 text-white font-ui rounded-full transition-colors duration-300">
+                  Explore Collections
+                  <ChevronRight size={20} />
+                </button>
               </div>
             </div>
-
-            <div className="flex items-start gap-3">
-              <FaHandshake className="text-2xl text-pink-500 mt-1" />
-              <div>
-                <h4 className="font-bold">Trusted by 150+ Brands</h4>
-                <p>
-                  Reliable partnerships with leading fashion labels across India.
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <FaRegLightbulb className="text-2xl text-yellow-500 mt-1" />
-              <div>
-                <h4 className="font-bold">Innovation & Style</h4>
-                <p>
-                  Blending traditional craftsmanship with contemporary design.
-                </p>
+            <div className="relative">
+              <div className="aspect-square bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 rounded-3xl"></div>
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-r from-yellow-400 to-orange-400 dark:from-yellow-500 dark:to-orange-500 rounded-2xl flex items-center justify-center">
+                <Heart className="w-12 h-12 text-white" fill="white" />
               </div>
             </div>
           </div>
 
-          <div className="mt-8 border-t pt-5 space-y-3 text-center">
-            <p>
-              ✨ <strong>Our Vision:</strong> To carry forward our family’s rich
-              legacy while building a modern, trusted name in the garment
-              industry.
+          {/* CTA Section */}
+          <div className="text-center py-12">
+            <div className="inline-flex items-center gap-2 mb-4">
+              <Star className="w-6 h-6 text-purple-500 dark:text-purple-400" fill="currentColor" />
+              <Star className="w-6 h-6 text-purple-500 dark:text-purple-400" />
+              <Star className="w-6 h-6 text-purple-500 dark:text-purple-400" fill="currentColor" />
+            </div>
+            <h3 className="font-heading text-2xl md:text-3xl text-gray-900 dark:text-white mb-4">
+              Experience the Zohra Difference
+            </h3>
+            <p className="font-body text-gray-600 dark:text-gray-400 max-w-2xl mx-auto mb-8">
+              Join thousands of women who have transformed their sleep experience 
+              with our thoughtfully designed nightwear collection.
             </p>
-            <p>
-              🤝 <strong>Our Promise:</strong> Quality, comfort, and creativity
-              in every stitch.
-            </p>
+            <button className="px-8 py-4 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 dark:from-purple-600 dark:to-pink-600 dark:hover:from-purple-700 dark:hover:to-pink-700 text-white font-ui rounded-full transition-all duration-300 hover:shadow-2xl">
+              Shop Now
+            </button>
           </div>
-        </motion.div>
+        </div>
       </div>
-    </section>
-  );
+    </div>
+  )
 }
 
 export default About

@@ -9,8 +9,7 @@ import OrderSuccess from "../pages/general/OrderSuccess";
 // Authentication Pages
 import UserLogin from "../pages/Auth/UserLogin";
 import UserRegister from "../pages/Auth/UserRegister";
-import WholesalerLogin from "../pages/Auth/WholesalerLogin";
-import WholesalerRegister from "../pages/Auth/WholesalerRegister";
+
 import AdminLogin from "../pages/Auth/AdminLogin";
 import OTPVerification from "../pages/Auth/OTPVerification";
 
@@ -19,12 +18,6 @@ import Dashboard from "../pages/Dashboard/Admin/Dashboard";
 import AdminProducts from "../pages/Dashboard/Admin/products/AdminProducts";
 import AddProduct from "../pages/Dashboard/Admin/products/AddProduct";
 import EditProduct from "../pages/Dashboard/Admin/products/EditProduct";
-import WholesalerApplications from "../pages/Dashboard/Admin/WholesalerApplications";
-
-// Wholesaler Dashboard Pages
-import WholesalerDashboard from "../pages/Dashboard/Wholesaler/WholesalerDashboard";
-import WholesalerProducts from "../pages/Dashboard/Wholesaler/WholesalerProducts";
-import WholesalerOrders from "../pages/Dashboard/Wholesaler/WholesalerOrders";
 
 // User Dashboard Pages
 import UserDashboard from "../pages/Dashboard/User/UserDashboard";
@@ -167,19 +160,19 @@ export const router = createBrowserRouter([
         path: "/forgot-password",
         element: <ForgotPassword />
       },
-      {
-        path: "/wholesaler/forgot-password",
-        element: <WholesalerForgotPassword />
-      },
+      // {
+      //   path: "/wholesaler/forgot-password",
+      //   element: <WholesalerForgotPassword />
+      // },
       {
         path: "/reset-password",
         element: <ResetPassword />
       },
 
-      {
-        path: "/wholesaler/forgot-password",
-        element: <WholesalerForgotPassword />
-      },
+      // {
+      //   path: "/wholesaler/forgot-password",
+      //   element: <WholesalerForgotPassword />
+      // },
       {
         path: "/reset-password",
         element: <ResetPassword />
@@ -193,14 +186,14 @@ export const router = createBrowserRouter([
         path: "/admin/reset-password",
         element: <AdminResetPassword />
       },
-      {
-        path: "/wholesaler/login",
-        element: <WholesalerLogin />
-      },
-      {
-        path: "/wholesaler/register",
-        element: <WholesalerRegister />
-      },
+      // {
+      //   path: "/wholesaler/login",
+      //   element: <WholesalerLogin />
+      // },
+      // {
+      //   path: "/wholesaler/register",
+      //   element: <WholesalerRegister />
+      // },
       {
         path: "/admin/login",
         element: <AdminLogin />
@@ -220,14 +213,6 @@ export const router = createBrowserRouter([
       },
     ]
   },
-  {
-        path: "wholesaler/dashboard",
-        element: (
-          <ProtectedRoute allowedRoles={['WHOLESALER']}>
-            <WholesalerDashboard />
-          </ProtectedRoute>
-        )
-    },
   {
     path: "/dashboard",
     element: <DashboardLayout />, // Remove ProtectedRoute wrapper
@@ -588,35 +573,8 @@ export const router = createBrowserRouter([
     </ProtectedRoute>
   )
 },
-      {
-        path: "wholesaler-applications",
-        element: (
-          <ProtectedRoute allowedRoles={['ADMIN']}>
-            <WholesalerApplications />
-          </ProtectedRoute>
-        )
-      },
 
-      // Wholesaler Routes
 
-      {
-        path: "wholesaler/products",
-        element: (
-          <ProtectedRoute allowedRoles={['WHOLESALER']}>
-            <WholesalerProducts />
-          </ProtectedRoute>
-        )
-      },
-      {
-        path: "wholesaler/orders",
-        element: (
-          <ProtectedRoute allowedRoles={['WHOLESALER']}>
-            <WholesalerOrders />
-          </ProtectedRoute>
-        )
-      },
-
-      // User Routes
 
     ]
   },

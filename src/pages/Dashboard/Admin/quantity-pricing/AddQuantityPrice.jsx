@@ -19,8 +19,42 @@ const AddQuantityPrice = () => {
   const [addQuantityPrice] = useAddSubcategoryQuantityPriceMutation();
   
   // ✅ CORRECT: Get all subcategories for the dropdown
-  const { data: subcategoriesResponse } = useGetAllSubcategoriesQuery();
-  const subcategories = subcategoriesResponse?.data || [];
+const { data: subcategoriesResponse } = useGetAllSubcategoriesQuery();
+
+  
+
+
+const extractSubcategories = (data) => {
+  if (!data) {
+    return [];
+  }
+  
+  
+  // Based on your Redux structure, subcategories might be in data.data.subcategories
+  if (data.data && data.data.subcategories && Array.isArray(data.data.subcategories)) {
+    return data.data.subcategories;
+  }
+  
+  // Fallback: try data.subcategories
+  if (data.subcategories && Array.isArray(data.subcategories)) {
+    return data.subcategories;
+  }
+  
+  // Fallback: try data.data as array
+  if (data.data && Array.isArray(data.data)) {
+    return data.data;
+  }
+  
+  // Fallback: data itself might be array
+  if (Array.isArray(data)) {
+    return data;
+  }
+  
+  return [];
+};
+
+
+const subcategories = extractSubcategories(subcategoriesResponse);
 
   // Form state
   const [formData, setFormData] = useState({

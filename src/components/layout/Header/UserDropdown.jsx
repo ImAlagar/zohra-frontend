@@ -183,7 +183,7 @@ const UserDropdown = ({
         whileHover={{ y: -2 }}
       >
         <FiUser className="size-4" />
-        <span className="text-sm">{getUserDisplayName()}</span>
+        <span className="text-sm text-nowrap">{getUserDisplayName()}</span>
         <motion.span
           animate={{ rotate: dropdownOpen ? 180 : 0 }}
           transition={{ duration: 0.3 }}

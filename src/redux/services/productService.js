@@ -1,4 +1,4 @@
-// redux/services/productService.js - UPDATED WITH TOAST
+// redux/services/productService.js - UPDATED WITH PROPER PAGINATION
 import { apiSlice } from './api';
 import { toast } from 'react-toastify';
 
@@ -6,17 +6,34 @@ export const productService = apiSlice.injectEndpoints({
   endpoints: (builder) => ({
     // Admin product endpoints
     getAdminProducts: builder.query({
-      query: (params = {}) => ({
-        url: '/products',
-        params: {
-          page: params.page || 1,
-          limit: params.limit || 10,
-          search: params.search || '',
-          status: params.status || '', // Send as-is: "active", "inactive"
-          category: params.category || '',
-          sortBy: params.sortBy || 'createdAt',
-          sortOrder: params.sortOrder || 'desc'
-        },
+      query: (params = {}) => {
+        const queryParams = new URLSearchParams();
+        
+        // Add pagination
+        queryParams.append('page', params.page || 1);
+        queryParams.append('limit', params.limit || 10);
+        
+        // Add filters
+        if (params.search) queryParams.append('search', params.search);
+        if (params.status) queryParams.append('status', params.status);
+        if (params.category) queryParams.append('category', params.category);
+        if (params.subcategory) queryParams.append('subcategory', params.subcategory);
+        if (params.stockStatus) queryParams.append('stockStatus', params.stockStatus);
+        
+        // Add sorting
+        queryParams.append('sortBy', params.sortBy || 'createdAt');
+        queryParams.append('sortOrder', params.sortOrder || 'desc');
+
+        return {
+          url: `/products?${queryParams.toString()}`,
+        };
+      },
+      providesTags: ['Product'],
+    }),
+
+    getAllProducts: builder.query({
+      query: () => ({
+     url: '/products?limit=1000', // Fetch all products at once
       }),
       providesTags: ['Product'],
     }),
@@ -180,15 +197,6 @@ export const productService = apiSlice.injectEndpoints({
       },
     }),
 
-    // Public endpoints
-    getAllProducts: builder.query({
-      query: (params = {}) => ({
-        url: '/products',
-        params,
-      }),
-      providesTags: ['Product'],
-    }),
-
     searchProducts: builder.query({
       query: (searchParams) => ({
         url: '/products/search',
@@ -264,8 +272,6 @@ export const productService = apiSlice.injectEndpoints({
       ],
     }),
 
-
-
     // Calculate quantity price for a product
     calculateQuantityPrice: builder.mutation({
       query: ({ productId, quantity }) => ({
@@ -295,13 +301,12 @@ export const productService = apiSlice.injectEndpoints({
       query: () => '/products/subcategories/with-pricing',
       providesTags: ['Subcategory'],
     }),
-
-
   }),
 });
 
 export const {
   useGetAdminProductsQuery,
+  useGetAllProductsQuery,
   useGetProductByIdQuery,
   useGetProductBySlugQuery,
   useCreateProductMutation,
@@ -313,7 +318,6 @@ export const {
   useToggleBestSellerMutation,
   useToggleFeaturedMutation,
   useToggleNewArrivalMutation,
-  useGetAllProductsQuery,
   useSearchProductsQuery,
   useGetFeaturedProductsQuery,
   useGetNewArrivalsQuery,
@@ -323,13 +327,8 @@ export const {
   useUpdateProductVariantMutation,
   useDeleteProductVariantMutation,
   useUpdateVariantStockMutation,
-
   useCalculateQuantityPriceMutation,
   useGetProductsWithQuantityOffersQuery,
   useCalculateCartPricesMutation,
   useGetSubcategoriesWithQuantityPricingQuery,
-  
-  // Admin quantity pricing exports
-  useAddSubcategoryQuantityPriceMutation,
-
 } = productService;

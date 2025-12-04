@@ -1,24 +1,25 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { topbarMessages, motionVariants } from '../../../constants/headerConstants';
+import { topbarMessages } from '../../../constants/headerConstants';
+import { MOTION_VARIANTS } from '../../../constants/animationConstants';
 import { useTheme } from '../../../context/ThemeContext';
 
-const PromotionalTopbar = ({ topbarVisible }) => {
+const PromotionalTopbar = React.memo(({ topbarVisible }) => {
   const { theme } = useTheme();
-
-  // Theme-based color configurations
+  
+  // Golden/Amber theme matching footer
   const getTopbarStyles = () => {
     if (theme === "dark") {
       return {
-        background: "bg-gradient-to-r from-gray-900 via-[#F4CB45]/20 to-gray-900",
-        textColor: "text-[#F4CB45]",
-        border: "border-b border-[#F4CB45]/30"
+        background: "bg-gradient-to-r from-gray-900 via-amber-500/20 to-gray-900",
+        textColor: "text-amber-400",
+        border: "border-b border-amber-500/30"
       };
     } else {
       return {
-        background: "bg-gradient-to-r from-[#F4CB45] to-yellow-400",
+        background: "bg-gradient-to-r from-amber-200 to-yellow-40",
         textColor: "text-gray-900",
-        border: "border-b border-yellow-500"
+        border: "border-b border-amber-500"
       };
     }
   };
@@ -29,7 +30,7 @@ const PromotionalTopbar = ({ topbarVisible }) => {
     <AnimatePresence>
       {topbarVisible && (
         <motion.div
-          variants={motionVariants.topbar}
+          variants={MOTION_VARIANTS.topbar}
           initial="hidden"
           animate="visible"
           exit="hidden"
@@ -48,13 +49,11 @@ const PromotionalTopbar = ({ topbarVisible }) => {
                 },
               }}
             >
-              {topbarMessages.map((message, index) => (
-                <span key={index} className={`mx-8 text-sm font-medium font-inter ${styles.textColor}`}>
-                  {message}
-                </span>
-              ))}
-              {topbarMessages.map((message, index) => (
-                <span key={`dup-${index}`} className={`mx-8 text-sm font-medium font-inter ${styles.textColor}`}>
+              {[...topbarMessages, ...topbarMessages].map((message, index) => (
+                <span 
+                  key={`${index}-${message.substring(0, 10)}`}
+                  className={`mx-8 text-sm font-medium font-inter ${styles.textColor}`}
+                >
                   {message}
                 </span>
               ))}
@@ -64,6 +63,7 @@ const PromotionalTopbar = ({ topbarVisible }) => {
       )}
     </AnimatePresence>
   );
-};
+});
 
+PromotionalTopbar.displayName = 'PromotionalTopbar';
 export default PromotionalTopbar;
