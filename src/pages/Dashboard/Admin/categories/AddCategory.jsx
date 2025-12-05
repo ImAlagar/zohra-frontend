@@ -128,6 +128,10 @@ const AddCategory = () => {
       toast.error('Category name is required');
       return false;
     }
+    if (!formData.description.trim()) {
+      toast.error('Category description is required');
+      return false;
+    }
     if (!image) {
       toast.error('Category image is required');
       return false;
@@ -241,10 +245,11 @@ const AddCategory = () => {
 
                       <motion.div variants={itemVariants}>
                         <TextArea
-                          label="Description"
+                          label="Description *"
                           name="description"
                           value={formData.description}
                           onChange={handleInputChange}
+                          required
                           placeholder="Describe this category..."
                           rows={4}
                         />

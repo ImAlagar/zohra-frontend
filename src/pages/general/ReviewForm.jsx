@@ -1,25 +1,39 @@
-// components/Product/ReviewForm.jsx
-import React, { useState } from 'react';
+// components/Product/ReviewForm.jsx - UPDATED WITH EDIT SUPPORT
+import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../context/ThemeContext';
-import { useCreateRatingMutation } from '../../redux/services/ratingService';
+import { useCreateRatingMutation, useUpdateRatingMutation } from '../../redux/services/ratingService';
 import { toast } from 'react-toastify';
+import { Link } from 'react-router-dom';
 
-const ReviewForm = ({ productId, onReviewSubmitted }) => {
+const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const user = useSelector((state) => state.auth.user);
   
-  const [createRating, { isLoading }] = useCreateRatingMutation();
+  const [createRating, { isLoading: isCreating }] = useCreateRatingMutation();
+  const [updateRating, { isLoading: isUpdating }] = useUpdateRatingMutation();
   
   const [formData, setFormData] = useState({
     rating: 0,
     title: '',
-    review: '', // Changed from 'comment' to 'review'
+    review: '',
     isAnonymous: false
   });
   
   const [hoverRating, setHoverRating] = useState(0);
+
+  // Initialize form with edit data if provided
+  useEffect(() => {
+    if (editData) {
+      setFormData({
+        rating: editData.rating || 0,
+        title: editData.title || '',
+        review: editData.comment || editData.review || '',
+        isAnonymous: editData.isAnonymous || false
+      });
+    }
+  }, [editData]);
 
   const handleRatingChange = (rating) => {
     setFormData(prev => ({ ...prev, rating }));
@@ -41,37 +55,53 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
       return;
     }
 
-    if (!formData.review.trim()) { // Changed from formData.comment
+    if (!formData.review.trim()) {
       toast.error('Please write a review');
       return;
     }
 
     try {
-      await createRating({
-        productId,
-        rating: formData.rating,
-        title: formData.title,
-        review: formData.review, // Changed from comment to review
-        isAnonymous: formData.isAnonymous
-      }).unwrap();
+      if (editData) {
+        // Update existing review
+        await updateRating({
+          ratingId: editData._id || editData.id,
+          ratingData: {
+            rating: formData.rating,
+            title: formData.title,
+            review: formData.review,
+            isAnonymous: formData.isAnonymous
+          }
+        }).unwrap();
+        toast.success('Review updated successfully!');
+      } else {
+        // Create new review
+        await createRating({
+          productId,
+          rating: formData.rating,
+          title: formData.title,
+          review: formData.review,
+          isAnonymous: formData.isAnonymous
+        }).unwrap();
+        toast.success('Review submitted successfully!');
+      }
 
       // Reset form
-      setFormData({
-        rating: 0,
-        title: '',
-        review: '', // Changed from comment
-        isAnonymous: false
-      });
+      if (!editData) {
+        setFormData({
+          rating: 0,
+          title: '',
+          review: '',
+          isAnonymous: false
+        });
+      }
 
       if (onReviewSubmitted) {
         onReviewSubmitted();
       }
 
-      toast.success('Review submitted successfully!');
-
     } catch (error) {
       console.error('Failed to submit review:', error);
-      toast.error(error?.data?.message || 'Failed to submit review');
+      toast.error(error?.data?.message || `Failed to ${editData ? 'update' : 'submit'} review`);
     }
   };
 
@@ -85,7 +115,7 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
             onClick={() => handleRatingChange(star)}
             onMouseEnter={() => setHoverRating(star)}
             onMouseLeave={() => setHoverRating(0)}
-            className="focus:outline-none"
+            className="focus:outline-none transition-transform hover:scale-110"
           >
             <svg
               className={`w-8 h-8 ${
@@ -107,16 +137,18 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
     return (
       <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
         <p className="text-center text-gray-600 dark:text-gray-400">
-          Please <button className="text-blue-600 hover:underline">login</button> to write a review
+          Please <Link to={'/login'} className="text-blue-600 hover:underline">login</Link> to write a review
         </p>
       </div>
     );
   }
 
+  const isLoading = isCreating || isUpdating;
+
   return (
     <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'}`}>
       <h3 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>
-        Write a Review
+        {editData ? 'Edit Your Review' : 'Write a Review'}
       </h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -126,6 +158,9 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
             Your Rating *
           </label>
           {renderStarRating()}
+          <p className="text-xs text-gray-500 mt-1">
+            {formData.rating === 0 ? 'Select your rating' : `You rated ${formData.rating} star${formData.rating > 1 ? 's' : ''}`}
+          </p>
         </div>
 
         {/* Review Title */}
@@ -155,9 +190,9 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
             Your Review *
           </label>
           <textarea
-            id="review" // Changed from comment to review
-            name="review" // Changed from comment to review
-            value={formData.review} // Changed from comment to review
+            id="review"
+            name="review"
+            value={formData.review}
             onChange={handleInputChange}
             rows={4}
             className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
@@ -168,6 +203,9 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
             placeholder="Share your experience with this product..."
             required
           />
+          <p className="text-xs text-gray-500 mt-1">
+            {formData.review.length}/500 characters
+          </p>
         </div>
 
         {/* Anonymous Checkbox */}
@@ -186,17 +224,28 @@ const ReviewForm = ({ productId, onReviewSubmitted }) => {
         </div>
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isLoading || !formData.rating || !formData.review.trim()} // Changed from comment to review
-          className={`px-6 py-2 rounded-md font-medium transition-colors ${
-            isLoading || !formData.rating || !formData.review.trim() // Changed from comment to review
-              ? 'bg-gray-400 cursor-not-allowed text-gray-200'
-              : 'bg-blue-600 hover:bg-blue-700 text-white'
-          }`}
-        >
-          {isLoading ? 'Submitting...' : 'Submit Review'}
-        </button>
+        <div className="flex justify-end space-x-3">
+          {editData && onReviewSubmitted && (
+            <button
+              type="button"
+              onClick={() => onReviewSubmitted()}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-md hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              Cancel
+            </button>
+          )}
+          <button
+            type="submit"
+            disabled={isLoading || !formData.rating || !formData.review.trim()}
+            className={`px-6 py-2 rounded-md font-medium transition-colors ${
+              isLoading || !formData.rating || !formData.review.trim()
+                ? 'bg-gray-400 cursor-not-allowed text-gray-200'
+                : 'bg-blue-600 hover:bg-blue-700 text-white'
+            }`}
+          >
+            {isLoading ? 'Submitting...' : editData ? 'Update Review' : 'Submit Review'}
+          </button>
+        </div>
       </form>
     </div>
   );

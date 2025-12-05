@@ -13,7 +13,8 @@ const AddProduct = () => {
   const [loading, setLoading] = useState(false);
   const [showCustomColor, setShowCustomColor] = useState(false);
   const { theme } = useTheme();
-const navigate = useNavigate(); // ADD THIS HOOK
+  const navigate = useNavigate();
+
   // Redux queries and mutations
   const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
   const { data: categoriesData, isLoading: categoriesLoading } = useGetAllCategoriesQuery();
@@ -21,61 +22,52 @@ const navigate = useNavigate(); // ADD THIS HOOK
   const { data: subcategoriesData, isLoading: subcategoriesLoading } = 
     useGetSubcategoriesByCategoryQuery(selectedCategoryId, { skip: !selectedCategoryId });
 
-
-    const extractCategories = (data) => {
-  if (!data) {
+  const extractCategories = (data) => {
+    if (!data) {
+      return [];
+    }
+    
+    if (data.data && data.data.categories && Array.isArray(data.data.categories)) {
+      return data.data.categories;
+    }
+    
+    if (data.categories && Array.isArray(data.categories)) {
+      return data.categories;
+    }
+    
+    if (data.data && Array.isArray(data.data)) {
+      return data.data;
+    }
+    
+    if (Array.isArray(data)) {
+      return data;
+    }
+    
     return [];
-  }
-  
-  
-  // Based on your Redux structure, categories are in data.data.categories
-  if (data.data && data.data.categories && Array.isArray(data.data.categories)) {
-    return data.data.categories;
-  }
-  
-  // Fallback: try data.categories
-  if (data.categories && Array.isArray(data.categories)) {
-    return data.categories;
-  }
-  
-  // Fallback: try data.data as array
-  if (data.data && Array.isArray(data.data)) {
-    return data.data;
-  }
-  
-  // Fallback: data itself might be array
-  if (Array.isArray(data)) {
-    return data;
-  }
-  
-  return [];
-};
+  };
 
-const extractSubcategories = (data) => {
-  if (!data) {
+  const extractSubcategories = (data) => {
+    if (!data) {
+      return [];
+    }
+    
+    if (data.data && data.data.subcategories && Array.isArray(data.data.subcategories)) {
+      return data.data.subcategories;
+    }
+    
+    if (data.data && Array.isArray(data.data)) {
+      return data.data;
+    }
+    
+    if (Array.isArray(data)) {
+      return data;
+    }
+    
     return [];
-  }
-  
-  
-  // Subcategories likely follow similar structure
-  if (data.data && data.data.subcategories && Array.isArray(data.data.subcategories)) {
-    return data.data.subcategories;
-  }
-  
-  if (data.data && Array.isArray(data.data)) {
-    return data.data;
-  }
-  
-  if (Array.isArray(data)) {
-    return data;
-  }
-  
-  return [];
-};
+  };
 
-
-const categories = categoriesLoading ? [] : extractCategories(categoriesData);
-const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcategoriesData);
+  const categories = categoriesLoading ? [] : extractCategories(categoriesData);
+  const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcategoriesData);
 
   // Animation variants
   const containerVariants = {
@@ -119,7 +111,6 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
     description: '',
     normalPrice: '',
     offerPrice: '',
-    wholesalePrice: '',
     categoryId: '',
     subcategoryId: '',
     status: 'ACTIVE',
@@ -133,7 +124,7 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
   // Professional variant structure: color -> sizes + images
   const [variants, setVariants] = useState({});
 
-  const commonSizes = ['M', 'L', 'XL', 'XXL'];
+  const commonSizes = ['M', 'L', 'XL', 'XXL', 'XXXL'];
   const commonColors = ['Red', 'Blue', 'Green', 'Black', 'White', 'Gray', 'Navy', 'Maroon', 'Olive'];
 
   // Theme-based styling
@@ -379,8 +370,9 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
 
   // Generate product code
   const generateProductCode = () => {
+    // If category is selected, use category code, otherwise use generic
     const category = categories.find(cat => cat.id === product.categoryId);
-    const categoryCode = category ? category.name.substring(0, 3).toUpperCase() : 'PRO';
+    const categoryCode = category ? category.name.substring(0, 3).toUpperCase() : 'GEN';
     const randomNum = Math.floor(100 + Math.random() * 900);
     const code = `${categoryCode}${randomNum}`;
 
@@ -402,7 +394,7 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
       }));
   };
 
-  // Form validation
+  // Form validation - REMOVED category requirement
   const validateForm = () => {
     if (!product.name.trim()) {
       toast.error('Product name is required');
@@ -416,10 +408,7 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
       toast.error('Valid normal price is required');
       return false;
     }
-    if (!product.categoryId) {
-      toast.error('Category is required');
-      return false;
-    }
+    // Category validation removed - now optional
 
     // Validate product details
     for (let detail of productDetails) {
@@ -461,11 +450,16 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
       const formData = new FormData();
 
       // 1. Add basic product data
-      Object.entries(product).forEach(([key, value]) => {
-        if (value !== null && value !== undefined && value !== '') {
+    Object.entries(product).forEach(([key, value]) => {
+      // Only add categoryId if it has a value
+      if (key === 'categoryId' || key === 'subcategoryId') {
+        if (value && value !== '') {
           formData.append(key, value.toString());
         }
-      });
+      } else if (value !== null && value !== undefined && value !== '') {
+        formData.append(key, value.toString());
+      }
+    });
 
       // 2. Add product details
       formData.append('productDetails', JSON.stringify(productDetails));
@@ -508,7 +502,6 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
       description: '',
       normalPrice: '',
       offerPrice: '',
-      wholesalePrice: '',
       categoryId: '',
       subcategoryId: '',
       status: 'ACTIVE',
@@ -650,19 +643,18 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
                         </div>
                       </motion.div>
 
-                      {/* Category */}
+                      {/* Category - CHANGED: Not required */}
                       <motion.div variants={itemVariants}>
                         <label className={`block text-sm font-medium font-instrument ${currentTheme.text.secondary} mb-2`}>
-                          Category *
+                          Category
                         </label>
                         <select
                           name="categoryId"
                           value={product.categoryId}
                           onChange={handleProductChange}
-                          required
                           className={`w-full px-4 py-3 border ${currentTheme.border} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${currentTheme.bg.input} ${currentTheme.text.primary}`}
                         >
-                          <option value="">Select Category</option>
+                          <option value="">Select Category (Optional)</option>
                           {categoriesLoading ? (
                             <option value="" disabled>Loading categories...</option>
                           ) : (
@@ -673,6 +665,9 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
                             ))
                           )}
                         </select>
+                        <p className={`text-xs ${currentTheme.text.muted} mt-1`}>
+                          Optional - You can categorize later
+                        </p>
                       </motion.div>
 
                       {/* Subcategory */}
@@ -684,9 +679,10 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
                           name="subcategoryId"
                           value={product.subcategoryId}
                           onChange={handleProductChange}
-                          className={`w-full px-4 py-3 border ${currentTheme.border} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${currentTheme.bg.input} ${currentTheme.text.primary}`}
+                          disabled={!selectedCategoryId}
+                          className={`w-full px-4 py-3 border ${currentTheme.border} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${currentTheme.bg.input} ${currentTheme.text.primary} ${!selectedCategoryId ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
-                          <option value="">Select Subcategory</option>
+                          <option value="">Select Subcategory (Optional)</option>
                           {subcategoriesLoading ? (
                             <option value="" disabled>Loading subcategories...</option>
                           ) : (
@@ -697,6 +693,11 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
                             ))
                           )}
                         </select>
+                        {!selectedCategoryId && (
+                          <p className={`text-xs ${currentTheme.text.muted} mt-1`}>
+                            Select a category first
+                          </p>
+                        )}
                       </motion.div>
 
                       {/* Normal Price */}
@@ -731,26 +732,6 @@ const subcategories = subcategoriesLoading ? [] : extractSubcategories(subcatego
                             type="number"
                             name="offerPrice"
                             value={product.offerPrice}
-                            onChange={handleProductChange}
-                            min="0"
-                            step="0.01"
-                            className={`w-full pl-10 pr-4 py-3 border ${currentTheme.border} rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 ${currentTheme.bg.input} ${currentTheme.text.primary}`}
-                            placeholder="0.00"
-                          />
-                        </div>
-                      </motion.div>
-
-                      {/* Wholesale Price */}
-                      <motion.div variants={itemVariants}>
-                        <label className={`block text-sm font-medium font-instrument ${currentTheme.text.secondary} mb-2`}>
-                          Wholesale Price
-                        </label>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">₹</span>
-                          <input
-                            type="number"
-                            name="wholesalePrice"
-                            value={product.wholesalePrice}
                             onChange={handleProductChange}
                             min="0"
                             step="0.01"

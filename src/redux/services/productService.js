@@ -43,10 +43,26 @@ export const productService = apiSlice.injectEndpoints({
       providesTags: (result, error, id) => [{ type: 'Product', id }],
     }),
 
+    // In your productService.js file
     getProductBySlug: builder.query({
-      query: (productId) => `/products/${productId}`,
+      query: (productId) => {
+        if (!productId) {
+          throw new Error('Product ID is required');
+        }
+        
+        // REMOVE the slug detection logic - always use the ID endpoint
+        return `/products/${productId}`;
+      },
+      providesTags: (result, error, productId) => [{ type: 'Product', id: productId }],
+      transformResponse: (response) => {
+        // Handle different response structures
+        if (response.data) {
+          return response.data;
+        }
+        return response;
+      },
     }),
-    
+
     createProduct: builder.mutation({
       query: (formData) => ({
         url: '/products/admin',

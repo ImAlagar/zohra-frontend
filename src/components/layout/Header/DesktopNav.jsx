@@ -10,8 +10,13 @@ import {
   FiStar,
   FiPackage,
   FiHeart,
-  FiFilter
+  FiFilter,
+  FiUser,
+  FiShoppingBag,
+  FiGrid
 } from 'react-icons/fi';
+import { useGetAllCategoriesQuery } from '../../../redux/services/categoryService';
+import LoadingSpinner from '../../../components/Common/LoadingSpinner';
 
 const DesktopNav = ({ 
   theme, 
@@ -26,11 +31,21 @@ const DesktopNav = ({
 }) => {
   const [expandedSections, setExpandedSections] = useState({
     shop: false,
-    collections: false,
+    categories: false,
     size: false,
     account: false
   });
   const navRef = useRef(null);
+
+  // Fetch categories from API
+  const { data: categoriesData, isLoading: categoriesLoading } = useGetAllCategoriesQuery({
+    page: 1,
+    limit: 20,
+    status: 'ACTIVE'
+  });
+
+  // Extract categories from API response
+  const categories = categoriesData?.data?.categories || [];
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -38,7 +53,7 @@ const DesktopNav = ({
       if (navRef.current && !navRef.current.contains(event.target)) {
         setExpandedSections({
           shop: false,
-          collections: false,
+          categories: false,
           size: false,
           account: false
         });
@@ -57,10 +72,23 @@ const DesktopNav = ({
 
   const isActive = (path) => {
     if (path === '/') return location.pathname === '/';
-    if (path.startsWith('/shop/') && location.pathname.startsWith('/shop/')) return true;
-    if (path.startsWith('/collection/') && location.pathname.startsWith('/collection/')) return true;
-    if (path.startsWith('/size/') && location.pathname.startsWith('/size/')) return true;
+    
+    // Check for shop routes - matches both /shop and /shop/*
+    if (path === '/shop' || path === '/shop/all') {
+      return location.pathname === '/shop' || 
+             location.pathname.startsWith('/shop/');
+    }
+    
+    // For specific shop categories (path parameters)
+    if (path.startsWith('/shop/')) {
+      return location.pathname === path;
+    }
+    
+    if (path === '/size-guide' && location.pathname === '/size-guide') return true;
     if (path.startsWith('/user/') && location.pathname.startsWith('/user/')) return true;
+    if (path === '/wishlist' && location.pathname === '/wishlist') return true;
+    
+    // For other pages
     return location.pathname === path;
   };
 
@@ -69,36 +97,24 @@ const DesktopNav = ({
     handleLinkClick();
     setExpandedSections({
       shop: false,
-      collections: false,
+      categories: false,
       size: false,
       account: false
     });
   };
 
-  // Navigation categories
-  const shopCategories = [
-    { label: 'All Nightwear', path: '/shop/all', icon: '🛏️' },
-    { label: 'Pajama Sets', path: '/shop/pajama-sets', icon: '👚' },
-    { label: 'Nightgowns', path: '/shop/nightgowns', icon: '👗' },
-    { label: 'Nightshirts', path: '/shop/nightshirts', icon: '👕' },
-    { label: 'Robes', path: '/shop/robes', icon: '🧥' },
-    { label: 'Sleep Masks', path: '/shop/sleep-masks', icon: '😴' },
-  ];
+  // Function to convert category name to URL slug
+  const getCategorySlug = (categoryName) => {
+    // Convert to lowercase and replace spaces with hyphens
+    return categoryName.toLowerCase().replace(/\s+/g, '-');
+  };
 
-  const collections = [
-    { label: 'Dreamy Florals', path: '/collection/dreamy-florals' },
-    { label: 'Princess Pajamas', path: '/collection/princess' },
-    { label: 'Cozy & Warm', path: '/collection/cozy-warm' },
-    { label: 'Summer Breeze', path: '/collection/summer' },
-    { label: 'Holiday Specials', path: '/collection/holiday' },
-    { label: 'New Arrivals', path: '/collection/new' },
-  ];
 
   // Size categories with icons
   const sizeCategories = [
     { 
       label: 'Medium (M)', 
-      path: '/size/medium', 
+      path: '/shop?size=M', 
       icon: 'M',
       description: 'Bust: 34-36", Waist: 28-30"',
       range: 'Size 8-10',
@@ -106,28 +122,28 @@ const DesktopNav = ({
     },
     { 
       label: 'Large (L)', 
-      path: '/size/large', 
+      path: '/shop?size=L', 
       icon: 'L',
       description: 'Bust: 36-38", Waist: 30-32"',
       range: 'Size 12-14'
     },
     { 
       label: 'Extra Large (XL)', 
-      path: '/size/xlarge', 
+      path: '/shop?size=XL', 
       icon: 'XL',
       description: 'Bust: 38-40", Waist: 32-34"',
       range: 'Size 16-18'
     },
     { 
       label: '2XL', 
-      path: '/size/2xl', 
+      path: '/shop?size=2XL', 
       icon: '2XL',
       description: 'Bust: 40-42", Waist: 34-36"',
       range: 'Size 20-22'
     },
     { 
       label: '3XL & Plus', 
-      path: '/size/plus', 
+      path: '/shop?size=3XL', 
       icon: '3XL+',
       description: 'Bust: 42"+',
       range: 'Size 24+'
@@ -142,7 +158,6 @@ const DesktopNav = ({
 
   const mainMenuItems = [
     { label: 'Home', path: '/', icon: <FiHome className="text-lg" /> },
-    { label: 'Sale', path: '/sale', icon: <FiPercent className="text-lg" />, highlight: true },
     { label: 'About', path: '/about-us', icon: <FiHelpCircle className="text-lg" /> },
     { label: 'Contact', path: '/contact', icon: <FiHelpCircle className="text-lg" /> },
   ];
@@ -153,6 +168,62 @@ const DesktopNav = ({
     { label: 'Reviews', path: '/user/reviews', icon: <FiStar className="text-lg" /> },
   ];
 
+  // Check if current path is shop with specific size filter
+  const isSizeFilterActive = (size) => {
+    if (location.pathname === '/shop') {
+      const params = new URLSearchParams(location.search);
+      const sizeParam = params.get('size');
+      if (sizeParam) {
+        const sizes = sizeParam.split(',');
+        return sizes.includes(size);
+      }
+    }
+    return false;
+  };
+
+  // Handle category navigation - FIXED: Use path parameters
+  const handleCategoryNavigation = (category) => {
+    // Convert category name to URL slug
+    const categorySlug = getCategorySlug(category.name);
+    // Navigate to shop with category path parameter
+    navigate(`/shop/${categorySlug}`);
+    handleLinkClick();
+    setExpandedSections({
+      shop: false,
+      categories: false,
+      size: false,
+      account: false
+    });
+  };
+
+  // Function to get category icon based on category name
+  const getCategoryIcon = (categoryName) => {
+    const iconMap = {
+      'pajama-sets': '👚',
+      'nightgowns': '👗',
+      'nightshirts': '👕',
+      'robes': '🧥',
+      'sleep-masks': '😴',
+      'nighties': '👚',
+      'nightwear': '🛏️',
+      'winter': '❄️',
+      'summer': '☀️',
+      'default': '🎽'
+    };
+    
+    const lowerName = categoryName.toLowerCase();
+    if (lowerName.includes('pajama') || lowerName.includes('pyjama') || lowerName.includes('nightie')) return iconMap['pajama-sets'];
+    if (lowerName.includes('gown')) return iconMap['nightgowns'];
+    if (lowerName.includes('shirt')) return iconMap['nightshirts'];
+    if (lowerName.includes('robe')) return iconMap['robes'];
+    if (lowerName.includes('mask')) return iconMap['sleep-masks'];
+    if (lowerName.includes('winter')) return iconMap['winter'];
+    if (lowerName.includes('summer')) return iconMap['summer'];
+    if (lowerName.includes('nightwear')) return iconMap['nightwear'];
+    
+    return iconMap['default'];
+  };
+
   return (
     <nav ref={navRef} className="hidden xl:flex items-center justify-center flex-1">
       <div className="flex items-center space-x-1">
@@ -161,8 +232,14 @@ const DesktopNav = ({
           <Link
             key={item.label}
             to={item.path}
-            onClick={handleLinkClick}
-            className={`group relative flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
+            onClick={(e) => {
+              handleLinkClick();
+              if (item.path === '/shop') {
+                e.preventDefault();
+                handleNavigation('/shop');
+              }
+            }}
+            className={`group relative flex items-center space-x-2 px-6 py-2 rounded-lg transition-all duration-200 ${
               theme === 'dark'
                 ? 'hover:bg-gray-800/50 text-gray-300 hover:text-white'
                 : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
@@ -191,27 +268,30 @@ const DesktopNav = ({
           </Link>
         ))}
 
-        {/* Shop Dropdown */}
+
+
+        {/* Categories Dropdown - FETCHED FROM API */}
         <div className="relative">
           <button
-            onClick={() => toggleSection('shop')}
+            onClick={() => toggleSection('categories')}
             className={`group flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
               theme === 'dark'
                 ? 'hover:bg-gray-800/50 text-gray-300 hover:text-white'
                 : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-            } ${expandedSections.shop || isActive('/shop/') ? 
+            } ${expandedSections.categories || location.pathname.startsWith('/shop/') ? 
               (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
               : ''}`}
           >
-            <span className="font-ui text-sm font-medium">Shop</span>
+            <FiGrid className="text-base" />
+            <span className="font-ui text-sm font-medium">Categories</span>
             <FiChevronDown className={`transition-transform duration-300 ${
-              expandedSections.shop ? 'rotate-180' : ''
-            } ${expandedSections.shop || isActive('/shop/') ? 
+              expandedSections.categories ? 'rotate-180' : ''
+            } ${expandedSections.categories || location.pathname.startsWith('/shop/') ? 
               (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
               : 'text-gray-400'}`} />
             
             {/* Active indicator */}
-            {isActive('/shop/') && !expandedSections.shop && (
+            {location.pathname.startsWith('/shop/') && !expandedSections.categories && (
               <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full ${
                 theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
               }`} />
@@ -219,7 +299,7 @@ const DesktopNav = ({
           </button>
 
           <AnimatePresence>
-            {expandedSections.shop && (
+            {expandedSections.categories && (
               <motion.div
                 initial={{ opacity: 0, y: -10, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -231,98 +311,73 @@ const DesktopNav = ({
                     : 'bg-white border border-gray-200'
                 }`}
               >
-                <div className="space-y-1">
-                  {shopCategories.map((item) => (
+                {categoriesLoading ? (
+                  <div className="flex justify-center items-center py-4">
+                    <LoadingSpinner size="sm" />
+                  </div>
+                ) : categories.length > 0 ? (
+                  <div className="space-y-1">
+                    {/* All Categories Option */}
                     <button
-                      key={item.label}
-                      onClick={() => handleNavigation(item.path)}
+                      onClick={() => handleNavigation('/shop')}
                       className={`flex items-center justify-between w-full px-4 py-2.5 text-sm transition-all duration-200 ${
                         theme === 'dark'
                           ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
                           : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                      } ${isActive(item.path) ? 
+                      } ${location.pathname === '/shop' ? 
                         (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
                         : ''}`}
                     >
                       <div className="flex items-center space-x-3">
-                        <span className="text-base">{item.icon}</span>
-                        <span className="font-medium">{item.label}</span>
+                        <span className="text-base">🛍️</span>
+                        <span className="font-medium">All Categories</span>
                       </div>
                       <FiChevronRight className={`text-sm ${
-                        isActive(item.path) ? 
+                        location.pathname === '/shop' ? 
                           (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
                           : 'text-gray-400'
                       }`} />
                     </button>
-                  ))}
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
 
-        {/* Collections Dropdown */}
-        <div className="relative">
-          <button
-            onClick={() => toggleSection('collections')}
-            className={`group flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-200 ${
-              theme === 'dark'
-                ? 'hover:bg-gray-800/50 text-gray-300 hover:text-white'
-                : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-            } ${expandedSections.collections || isActive('/collection/') ? 
-              (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
-              : ''}`}
-          >
-            <span className="font-ui text-sm font-medium">Collections</span>
-            <FiChevronDown className={`transition-transform duration-300 ${
-              expandedSections.collections ? 'rotate-180' : ''
-            } ${expandedSections.collections || isActive('/collection/') ? 
-              (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
-              : 'text-gray-400'}`} />
-            
-            {/* Active indicator */}
-            {isActive('/collection/') && !expandedSections.collections && (
-              <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full ${
-                theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
-              }`} />
-            )}
-          </button>
-
-          <AnimatePresence>
-            {expandedSections.collections && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className={`absolute top-full left-0 mt-2 w-64 py-3 rounded-lg shadow-xl z-50 ${
-                  theme === 'dark'
-                    ? 'bg-gray-900 border border-gray-800'
-                    : 'bg-white border border-gray-200'
-                }`}
-              >
-                <div className="space-y-1">
-                  {collections.map((item) => (
-                    <button
-                      key={item.label}
-                      onClick={() => handleNavigation(item.path)}
-                      className={`flex items-center justify-between w-full px-4 py-2.5 text-sm transition-all duration-200 ${
-                        theme === 'dark'
-                          ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
-                          : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                      } ${isActive(item.path) ? 
-                        (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
-                        : ''}`}
-                    >
-                      <span className="font-medium">{item.label}</span>
-                      {isActive(item.path) && (
-                        <div className={`w-2 h-2 rounded-full ${
-                          theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
-                        }`} />
-                      )}
-                    </button>
-                  ))}
-                </div>
+                    {/* Categories from API */}
+                    {categories.map((category) => {
+                      const categorySlug = getCategorySlug(category.name);
+                      const categoryPath = `/shop/${categorySlug}`;
+                      
+                      return (
+                        <button
+                          key={category._id || category.id}
+                          onClick={() => handleNavigation(categoryPath)}
+                          className={`flex items-center justify-between w-full px-4 py-2.5 text-sm transition-all duration-200 ${
+                            theme === 'dark'
+                              ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
+                              : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                          } ${isActive(categoryPath) ? 
+                            (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
+                            : ''}`}
+                        >
+                          <div className="flex items-center space-x-3">
+                            <span className="text-base">
+                              {category.icon || getCategoryIcon(category.name)}
+                            </span>
+                            <span className="font-medium">{category.name}</span>
+                          </div>
+                          <FiChevronRight className={`text-sm ${
+                            isActive(categoryPath) ? 
+                              (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
+                              : 'text-gray-400'
+                          }`} />
+                        </button>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className={`text-center py-4 px-3 ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    <p className="text-sm">No categories found</p>
+                  </div>
+                )}
               </motion.div>
             )}
           </AnimatePresence>
@@ -336,7 +391,7 @@ const DesktopNav = ({
               theme === 'dark'
                 ? 'hover:bg-gray-800/50 text-gray-300 hover:text-white'
                 : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-            } ${expandedSections.size || isActive('/size/') ? 
+            } ${expandedSections.size || (location.pathname === '/shop' && location.search.includes('size=')) ? 
               (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
               : ''}`}
           >
@@ -344,12 +399,12 @@ const DesktopNav = ({
             <span className="font-ui text-sm font-medium">By Size</span>
             <FiChevronDown className={`transition-transform duration-300 ${
               expandedSections.size ? 'rotate-180' : ''
-            } ${expandedSections.size || isActive('/size/') ? 
+            } ${expandedSections.size || (location.pathname === '/shop' && location.search.includes('size=')) ? 
               (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
               : 'text-gray-400'}`} />
             
             {/* Active indicator */}
-            {isActive('/size/') && !expandedSections.size && (
+            {location.pathname === '/shop' && location.search.includes('size=') && !expandedSections.size && (
               <div className={`absolute bottom-0 left-1/2 transform -translate-x-1/2 w-8 h-0.5 rounded-full ${
                 theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
               }`} />
@@ -385,7 +440,7 @@ const DesktopNav = ({
 
                 {/* Size Grid */}
                 <div className="grid grid-cols-3 gap-2 px-4">
-                  {sizeCategories.slice(0, 6).map((item) => (
+                  {sizeCategories.slice(0, 5).map((item) => (
                     <button
                       key={item.label}
                       onClick={() => handleNavigation(item.path)}
@@ -393,13 +448,13 @@ const DesktopNav = ({
                         theme === 'dark'
                           ? 'hover:bg-gray-800 border-gray-800'
                           : 'hover:bg-gray-50 border-gray-200'
-                      } border ${isActive(item.path) ? 
+                      } border ${isSizeFilterActive(item.icon) ? 
                         (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
                         : ''}`}
                     >
                       {/* Size Badge */}
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 text-lg font-bold transition-all duration-200 ${
-                        isActive(item.path)
+                        isSizeFilterActive(item.icon)
                           ? (theme === 'dark' 
                               ? 'bg-purple-600 text-white' 
                               : 'bg-purple-500 text-white')
@@ -432,40 +487,69 @@ const DesktopNav = ({
                       )}
                       
                       {/* Active Indicator */}
-                      {isActive(item.path) && (
+                      {isSizeFilterActive(item.icon) && (
                         <div className={`absolute bottom-1 w-6 h-0.5 rounded-full ${
                           theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
                         }`} />
                       )}
                     </button>
                   ))}
-                </div>
-
-                {/* Size Guide Link */}
-                <div className="mt-4 px-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                  
+                  {/* Size Guide */}
                   <button
                     onClick={() => handleNavigation('/size-guide')}
+                    className={`group relative p-3 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
+                      theme === 'dark'
+                        ? 'hover:bg-gray-800 border-gray-800'
+                        : 'hover:bg-gray-50 border-gray-200'
+                    } border ${isActive('/size-guide') ? 
+                      (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
+                      : ''}`}
+                  >
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 text-lg transition-all duration-200 ${
+                      isActive('/size-guide')
+                        ? (theme === 'dark' 
+                            ? 'bg-purple-600 text-white' 
+                            : 'bg-purple-500 text-white')
+                        : (theme === 'dark' 
+                            ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
+                            : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
+                    }`}>
+                      📏
+                    </div>
+                    <span className={`text-xs font-medium ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      Size Guide
+                    </span>
+                  </button>
+                </div>
+
+                {/* Advanced Filter Link */}
+                <div className="mt-4 px-4 pt-4 border-t border-gray-200 dark:border-gray-800">
+                  <button
+                    onClick={() => handleNavigation('/shop')}
                     className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 ${
                       theme === 'dark'
                         ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
                         : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                    } ${isActive('/size-guide') ? 
+                    } ${isActive('/shop') ? 
                       (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
                       : ''}`}
                   >
                     <div className="flex items-center space-x-3">
-                      <span className="text-lg">📏</span>
+                      <FiFilter className="text-lg" />
                       <div className="text-left">
-                        <div className="font-medium text-sm">Size Guide</div>
+                        <div className="font-medium text-sm">Advanced Size Filter</div>
                         <div className={`text-xs ${
                           theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
                         }`}>
-                          Find your perfect size
+                          Filter by multiple sizes
                         </div>
                       </div>
                     </div>
                     <FiChevronRight className={`text-sm ${
-                      isActive('/size-guide') ? 
+                      isActive('/shop') ? 
                         (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
                         : 'text-gray-400'
                     }`} />
@@ -542,6 +626,11 @@ const DesktopNav = ({
                           {item.icon}
                           <span className="font-medium">{item.label}</span>
                         </div>
+                        {item.label === 'Wishlist' && wishlistCount > 0 && (
+                          <span className="px-2 py-0.5 text-xs bg-red-500 text-white rounded-full">
+                            {wishlistCount}
+                          </span>
+                        )}
                         <FiChevronRight className={`text-sm ${
                           isActive(item.path) ? 
                             (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 

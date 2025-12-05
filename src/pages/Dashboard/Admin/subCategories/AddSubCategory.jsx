@@ -155,7 +155,9 @@ const categories = categoriesResponse?.data?.categories ||
       newErrors.name = 'Subcategory name is required';
     }
 
-
+    if (!formData.description.trim()) {
+      newErrors.description = 'Subcategory description is required';
+    }
 
     if (!formData.categoryId || formData.categoryId === '') { // Updated to categoryId
       newErrors.categoryId = 'Please select a category'; // Updated error key
@@ -279,10 +281,11 @@ const categories = categoriesResponse?.data?.categories ||
 
                       <motion.div variants={itemVariants}>
                         <TextArea
-                          label="Description"
+                          label="Description *"
                           name="description"
                           value={formData.description}
                           onChange={handleInputChange}
+                          required
                           placeholder="Describe this subcategory..."
                           rows={4}
                           error={errors.description}

@@ -1,10 +1,8 @@
-// Footer.jsx
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useTheme } from '../../../context/ThemeContext';
 import { useThemeColors } from '../../../components/Common/ThemeProviderUtils';
-import { MOTION_VARIANTS } from '../../../constants/animationConstants';
 import {
   CONTACT_DATA,
   SOCIAL_MEDIA,
@@ -21,20 +19,15 @@ import {
   ExploreButton
 } from '../../../components/layout/Footer/FooterComponents';
 import AnimatedIcon from '../../Common/AnimatedIcon';
-
-// FIXED IMPORTS: Removed duplicate Heart, fixed Sparkles import
 import { 
   Crown, 
   Heart, 
   ShoppingBag, 
   Mail, 
-  Home, 
-  User, 
-  Star, 
-  Sparkles,  // Changed from Sparkles as HeartIcon
-  Shield  // Added Shield icon for policy links
+  Shield,
+  Sparkles,
+  Star
 } from 'lucide-react';
-
 
 const Footer = React.memo(() => {
   const { theme } = useTheme();
@@ -42,20 +35,36 @@ const Footer = React.memo(() => {
   const colors = useThemeColors(theme);
   const currentYear = new Date().getFullYear();
 
+  // ✅ FIXED: Removed problematic useEffect that was causing scroll issues
+
   return (
-    <motion.footer
-      className={`${colors.bgColor} ${colors.textColor} transition-colors duration-500 relative overflow-hidden`}
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, margin: "-50px" }}
-      variants={MOTION_VARIANTS.container}
+    <footer
+      className={`${colors.bgColor} ${colors.textColor} transition-colors duration-500 relative`}
     >
       {/* Trust Badges Section */}
-      <TrustBadgesSection 
-        trustBadges={TRUST_BADGES} 
-        colors={colors} 
-        theme={theme} 
-      />
+      <div className={`border-b ${colors.borderColor} ${theme === "dark" ? "bg-gray-800" : "bg-white"}`}>
+        <div className="px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            {TRUST_BADGES.map((badge, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-center space-x-2 p-3 rounded-lg hover:scale-105 transition-transform duration-300"
+              >
+                <div className={`p-2 rounded-lg ${colors.iconBgColor}`}>
+                  <AnimatedIcon
+                    icon={badge.icon}
+                    animation={badge.animation}
+                    className={colors.accentColor}
+                  />
+                </div>
+                <span className={`text-xs font-medium font-inter ${colors.textColor}`}>
+                  {badge.text}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
 
       {/* Main Footer Content */}
       <div className="px-6 lg:px-8 py-16">
@@ -101,42 +110,13 @@ const Footer = React.memo(() => {
         policyLinks={POLICY_LINKS}
       />
 
-    </motion.footer>
+    </footer>
   );
 });
 
-// Sub-components for better organization
-const TrustBadgesSection = React.memo(({ trustBadges, colors, theme }) => (
-  <div className={`border-b ${colors.borderColor} ${theme === "dark" ? "bg-gray-800" : "bg-white"}`}>
-    <div className="px-6 lg:px-8 py-6">
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        {trustBadges.map((badge, index) => (
-          <motion.div
-            key={index}
-            className="flex items-center justify-center space-x-2 p-3 rounded-lg"
-            whileHover={{ scale: 1.05, y: -2 }}
-          >
-            <div className={`p-2 rounded-lg ${colors.iconBgColor}`}>
-              <AnimatedIcon
-                icon={badge.icon} 
-                animation={badge.animation}
-                className={colors.accentColor}
-              />
-            </div>
-            <span className={`text-xs font-medium font-inter ${colors.textColor}`}>
-              {badge.text}
-            </span>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  </div>
-));
-
-TrustBadgesSection.displayName = 'TrustBadgesSection';
-
+// Sub-components
 const BrandSection = React.memo(({ colors, socialMedia, theme, borderColor }) => (
-  <motion.div variants={MOTION_VARIANTS.item} className="md:col-span-2 lg:col-span-1">
+  <div className="md:col-span-2 lg:col-span-1">
     <BrandLogo 
       theme={theme}
       iconBgColor={colors.iconBgColor}
@@ -165,15 +145,15 @@ const BrandSection = React.memo(({ colors, socialMedia, theme, borderColor }) =>
         ))}
       </div>
     </div>
-  </motion.div>
+  </div>
 ));
 
 BrandSection.displayName = 'BrandSection';
 
 const CollectionsSection = React.memo(({ colors, categories, navigate, goldGradient }) => (
-  <motion.div variants={MOTION_VARIANTS.item}>
+  <div>
     <SectionHeader 
-      icon={ShoppingBag}  // Pass component directly instead of string
+      icon={ShoppingBag}
       title="Collections" 
       animation="float" 
       colors={colors}
@@ -181,29 +161,34 @@ const CollectionsSection = React.memo(({ colors, categories, navigate, goldGradi
     
     <div className="grid grid-cols-2 gap-2">
       {categories.map((category, index) => (
-        <motion.button
+        <button
           key={index}
-          whileHover={{ x: 3 }}
-          className={`text-sm font-inter ${colors.textColor} hover:text-amber-600 transition py-2 text-left`}
-          onClick={() => navigate(`/collection/${category.toLowerCase().replace(/ /g, '-')}`)}
+          className={`text-sm font-inter ${colors.textColor} hover:text-amber-600 transition py-2 text-left hover:translate-x-1 duration-300`}
+          onClick={() => {
+            // ✅ FIXED: Prevent default and use proper navigation
+            navigate(`/collection/${category.toLowerCase().replace(/ /g, '-')}`, {
+              replace: false, // Changed from true to false for proper history
+              state: { fromFooter: true }
+            });
+          }}
         >
           {category}
-        </motion.button>
+        </button>
       ))}
     </div>
 
     <div className="mt-8">
       <ExploreButton goldGradient={goldGradient} navigate={navigate} />
     </div>
-  </motion.div>
+  </div>
 ));
 
 CollectionsSection.displayName = 'CollectionsSection';
 
 const QuickLinksSection = React.memo(({ colors, quickLinks, navigate }) => (
-  <motion.div variants={MOTION_VARIANTS.item}>
+  <div>
     <SectionHeader 
-      icon={Heart}  // Pass component directly
+      icon={Heart}
       title="Quick Links" 
       animation="heartbeat" 
       colors={colors}
@@ -213,7 +198,7 @@ const QuickLinksSection = React.memo(({ colors, quickLinks, navigate }) => (
       {quickLinks.map((link, index) => (
         <SimpleLink 
           key={index}
-          onClick={() => navigate(link.path)}
+          onClick={() => navigate(link.path, { replace: false })}
           icon={link.icon}
           textColor={colors.textColor}
           accentColor={colors.accentColor}
@@ -222,15 +207,15 @@ const QuickLinksSection = React.memo(({ colors, quickLinks, navigate }) => (
         </SimpleLink>
       ))}
     </div>
-  </motion.div>
+  </div>
 ));
 
 QuickLinksSection.displayName = 'QuickLinksSection';
 
 const ContactSection = React.memo(({ colors, contactData }) => (
-  <motion.div variants={MOTION_VARIANTS.item} className="md:col-span-2 lg:col-span-1">
+  <div className="md:col-span-2 lg:col-span-1">
     <SectionHeader 
-      icon={Mail}  // Pass component directly
+      icon={Mail}
       title="Contact Us" 
       animation="pulse" 
       colors={colors}
@@ -248,7 +233,7 @@ const ContactSection = React.memo(({ colors, contactData }) => (
         />
       ))}
     </ul>
-  </motion.div>
+  </div>
 ));
 
 ContactSection.displayName = 'ContactSection';
@@ -298,7 +283,6 @@ const CopyrightSection = React.memo(({ colors, currentYear }) => (
 
 CopyrightSection.displayName = 'CopyrightSection';
 
-
 const PolicyLinks = React.memo(({ policyLinks, colors }) => (
   <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm font-inter">
     {policyLinks.map((policy, index) => (
@@ -306,9 +290,10 @@ const PolicyLinks = React.memo(({ policyLinks, colors }) => (
         key={index}
         to={policy.path} 
         className={`${colors.textColor} hover:text-amber-600 transition-colors flex items-center`}
+        // ✅ FIXED: Add prevent scroll reset
+        state={{ preventScrollReset: true }}
       >
         {policy.icon && (
-          // FIXED: Use icon prop instead of children
           <AnimatedIcon 
             icon={policy.icon}
             animation="pulse"
@@ -324,17 +309,11 @@ const PolicyLinks = React.memo(({ policyLinks, colors }) => (
 
 PolicyLinks.displayName = 'PolicyLinks';
 
-// Helper component for section headers - SIMPLIFIED VERSION
 const SectionHeader = ({ icon: Icon, title, animation, colors }) => {
-  // Check if Icon is valid
-  if (!Icon) {
-    console.warn('Icon is not provided to SectionHeader');
-    return null;
-  }
+  if (!Icon) return null;
   
   return (
     <div className="flex items-center space-x-2 mb-6">
-      {/* Use icon prop directly */}
       <AnimatedIcon 
         icon={Icon}
         animation={animation}

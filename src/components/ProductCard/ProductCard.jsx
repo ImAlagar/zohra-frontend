@@ -1,292 +1,325 @@
-import React, { useState } from "react";
-import { useSelector, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import { addToCart } from "../../redux/slices/cartSlice";
-import { useWishlist } from "../../hooks/useWishlist";
-import ProductImage from "./ProductImage";
-import ProductInfo from "./ProductInfo";
-import ProductActions from "./ProductActions";
-import { useProductCardStyles } from "./styles";
-import VariantModal from "./VariantModal";
-import { generateProductSlug } from "../../utils/slugify";
-import ModalPortal from "./ModalPortal";
-import VerticalAutoScrollBadge from "../discount/VerticalAutoScrollBadge";
+import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Heart, ShoppingBag, Tag } from 'lucide-react';
+import { toast } from 'react-hot-toast';
+import { addToWishlist, removeFromWishlist } from '../../redux/slices/wishlistSlice';
+import { addToCart } from '../../redux/slices/cartSlice';
 
-const ProductCard = ({ product, onCartUpdate }) => {
-  const [showVariantModal, setShowVariantModal] = useState(false);
-  const [selectedVariant, setSelectedVariant] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [addingToCart, setAddingToCart] = useState(false);
-  const [togglingWishlist, setTogglingWishlist] = useState(false);
-  const [showDiscountBadge, setShowDiscountBadge] = useState(false);
-
-  const user = useSelector((state) => state.auth.user);
-  const { 
-    isInWishlist, 
-    addItemToWishlist, 
-    removeItemFromWishlist
-  } = useWishlist();
-  
+const ProductCard = ({
+  product,
+  onCartUpdate,
+  selectedColor
+}) => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  
-  const styles = useProductCardStyles();
-  
-  // Safe product data with fallbacks
-  const safeProduct = product || {};
-  const availableVariants = safeProduct.variants?.filter(variant => variant?.stock > 0) || [];
-  const hasStock = availableVariants.length > 0;
+  const wishlistItems = useSelector((state) => state.wishlist.items);
+  const user = useSelector((state) => state.auth.user);
 
-  // Generate product slug with error handling
-  const productSlug = generateProductSlug(safeProduct);
+  const {
+    _id,
+    id,
+    name,
+    price,
+    originalPrice,
+    discount,
+    image,
+    isNew,
+    variants = [],
+    colors = [],
+    baseProductId = null
+  } = product;
 
-  // Handle mouse enter/leave for discount badge animation
-  const handleMouseEnter = () => {
-    setShowDiscountBadge(true);
-  };
+  // Use _id for navigation (MongoDB uses _id)
+  const productId = _id || id;
 
-  const handleMouseLeave = () => {
-    setShowDiscountBadge(false);
-  };
+  // Check if product is in wishlist
+  const isLiked = wishlistItems.some(item => 
+    item.product._id === productId || item.product.id === productId
+  );
 
-  const getProductImage = () => {
-    if (safeProduct.variantImages?.length > 0) {
-      return safeProduct.variantImages[0].imageUrl;
-    }
-    return "https://via.placeholder.com/300x300?text=No+Image";
-  };
-
-  // Handle card click to navigate to product details WITH COLOR
-  const handleCardClick = (e) => {
-    if (!safeProduct.id && !safeProduct._id) {
-      console.error('Product missing ID, cannot navigate');
-      return;
-    }
-
-    if (
-      e.target.closest('button') || 
-      e.target.closest('.wishlist-btn') ||
-      e.target.closest('.add-to-cart-btn') ||
-      e.target.closest('.variant-selector') ||
-      e.target.closest('.discount-badge-container')
-    ) {
-      return;
-    }
+  // Get all unique variant images
+  const getAllVariantImages = () => {
+    const allImages = [];
     
-    navigate(`/collections/${productSlug}`, {
-      state: {
-        selectedColor: safeProduct.color,
-        baseProductId: safeProduct.baseProductId
+    // Collect all variant images
+    variants.forEach(variant => {
+      if (variant.variantImages && variant.variantImages.length > 0) {
+        variant.variantImages.forEach(img => {
+          allImages.push(img.imageUrl);
+        });
       }
     });
+    
+    // Remove duplicate images by URL
+    const uniqueImages = [...new Set(allImages)];
+    
+    // If no variant images, use the main product image
+    if (uniqueImages.length === 0 && image) {
+      uniqueImages.push(image);
+    }
+    
+    // Fallback placeholder
+    if (uniqueImages.length === 0) {
+      uniqueImages.push('https://via.placeholder.com/400x500?text=Product+Image');
+    }
+    
+    return uniqueImages;
   };
 
-  // Handle wishlist click
-  const handleWishlistClick = async (e) => {
+  const variantImages = getAllVariantImages();
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [localSelectedColor, setLocalSelectedColor] = useState(
+    selectedColor || (colors.length > 0 ? colors[0] : null)
+  );
+
+  // Auto cycle images on hover
+  useEffect(() => {
+    let interval;
+    if (isHovered && variantImages.length > 1) {
+      interval = setInterval(() => {
+        setCurrentImageIndex((prev) => (prev + 1) % variantImages.length);
+      }, 2000); // Change image every 2 seconds
+    }
+    return () => clearInterval(interval);
+  }, [isHovered, variantImages.length]);
+
+  // Reset to first image when mouse leaves
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    setCurrentImageIndex(0);
+  };
+
+  // Handle like button click
+  const handleLikeClick = (e) => {
+    e.preventDefault();
     e.stopPropagation();
     
-    if (!user) {
-      navigate('/auth/login');
-      return;
-    }
+    if (!productId) return;
 
-    if (!safeProduct.id && !safeProduct._id) {
-      console.error('Product missing ID, cannot add to wishlist');
-      return;
-    }
+    const wishlistItem = {
+      product: {
+        _id: productId,
+        name: name,
+        image: image || (variantImages && variantImages[0]) || '',
+        price: price || 0,
+        category: product.category || 'Uncategorized'
+      },
+      addedAt: new Date().toISOString()
+    };
 
-    setTogglingWishlist(true);
-    try {
-      const productId = safeProduct.id || safeProduct._id;
-      if (isInWishlist(productId)) {
-        removeItemFromWishlist(productId);
-      } else {
-        addItemToWishlist(safeProduct, availableVariants[0]);
-      }
-    } catch (error) {
-      console.error("Failed to update wishlist:", error);
-    } finally {
-      setTogglingWishlist(false);
+    if (isLiked) {
+      dispatch(removeFromWishlist(productId));
+      toast.success('Removed from wishlist');
+    } else {
+      dispatch(addToWishlist(wishlistItem));
+      toast.success('Added to wishlist');
     }
   };
 
   // Handle add to cart click
-  const handleAddToCartClick = () => {
-    setShowVariantModal(true);
-  };
+// In ProductCard.jsx - Update the cart payload creation
+const handleAddToCartClick = (e) => {
+  e.preventDefault();
+  e.stopPropagation();
 
-  // FIXED addVariantToCart function
-  const addVariantToCart = async (variant, qty = quantity) => {
-    if (!safeProduct.id && !safeProduct._id) {
-      console.error('Product missing ID, cannot add to cart');
-      return;
-    }
-
-    setAddingToCart(true);
-    try {
-      const getProductImages = () => {
-        if (safeProduct.images && safeProduct.images.length > 0) {
-          const validImages = safeProduct.images.filter(img => 
-            img && !img.includes('via.placeholder.com') && !img.includes('No+Image')
-          );
-          if (validImages.length > 0) return validImages;
-        }
-        
-        if (variant?.image && !variant.image.includes('via.placeholder.com')) {
-          return [variant.image];
-        }
-        
-        if (safeProduct.image && !safeProduct.image.includes('via.placeholder.com')) {
-          return [safeProduct.image];
-        }
-        
-        return ['/images/placeholder-product.jpg'];
-      };
-
-      const productImages = getProductImages();
-      
-      const calculatePrice = () => {
-        if (variant?.price) return Number(variant.price);
-        
-        if (safeProduct.isWholesaleUser && safeProduct.wholesalePrice) {
-          return Number(safeProduct.wholesalePrice);
-        }
-        if (safeProduct.offerPrice) {
-          return Number(safeProduct.offerPrice);
-        }
-        if (safeProduct.normalPrice) {
-          return Number(safeProduct.normalPrice);
-        }
-        
-        return 0;
-      };
-
-      const cartItem = {
-        product: {
-          _id: safeProduct.id || safeProduct._id,
-          name: safeProduct.title || safeProduct.name || 'Unknown Product',
-          description: safeProduct.description || '',
-          category: safeProduct.category?.name || safeProduct.category || 'Uncategorized',
-          images: productImages,
-          image: productImages[0],
-          normalPrice: Number(safeProduct.normalPrice) || 0,
-          offerPrice: Number(safeProduct.offerPrice) || 0,
-          wholesalePrice: Number(safeProduct.wholesalePrice) || 0,
-        },
-        variant: {
-          _id: variant.id || `variant_${Date.now()}`,
-          color: variant.color || safeProduct.color || 'N/A',
-          size: variant.size || 'N/A',
-          price: calculatePrice(),
-          stock: variant.stock || 0,
-          sku: variant.sku || '',
-          image: variant.image || productImages[0],
-        },
-        quantity: Math.max(1, Number(qty) || 1)
-      };
-      
-      dispatch(addToCart(cartItem));
-      
-      setShowVariantModal(false);
-      setSelectedVariant(null);
-      setQuantity(1);
-      
-      if (onCartUpdate) {
-        onCartUpdate();
-      }
-    } catch (error) {
-      console.error("Failed to add to cart:", error);
-    } finally {
-      setAddingToCart(false);
-    }
-  };
-
-  const handleVariantSelect = (variant) => {
-    if (variant?.stock > 0) {
-      setSelectedVariant(variant);
-    }
-  };
-
-  const handleQuantityChange = (newQuantity) => {
-    if (newQuantity < 1) return;
-    if (selectedVariant && newQuantity > selectedVariant.stock) return;
-    setQuantity(newQuantity);
-  };
-
-  const closeModal = () => {
-    setShowVariantModal(false);
-    setSelectedVariant(null);
-    setQuantity(1);
-  };
-
-  // Don't render if product is invalid
-  if (!safeProduct || (!safeProduct.id && !safeProduct._id)) {
-    console.warn('ProductCard: Invalid product data', safeProduct);
-    return null;
+  // Find the variant for selected color
+  let variant;
+  if (localSelectedColor && variants.length > 0) {
+    variant = variants.find(v => v.color === localSelectedColor);
   }
 
+  // If no variant found, use first available variant
+  if (!variant && variants.length > 0) {
+    variant = variants[0];
+  }
+
+  if (!variant) {
+    toast.error('Please select options on product page');
+    return;
+  }
+
+  if (variant.stock <= 0) {
+    toast.error('Product is out of stock');
+    return;
+  }
+
+  // FIXED: Ensure productId and variant._id are properly used
+  const productIdToUse = productId || _id || id;
+  
+  // Validate IDs exist
+  if (!productIdToUse) {
+    toast.error('Product information is incomplete');
+    return;
+  }
+
+  if (!variant._id) {
+    toast.error('Variant information is incomplete');
+    return;
+  }
+
+  const cartPayload = {
+    product: {
+      _id: productIdToUse, // Use the validated product ID
+      name: name,
+      description: product.description || '',
+      category: product.category || 'Uncategorized',
+      images: variantImages,
+      image: image || variantImages[0] || '',
+      normalPrice: originalPrice?.replace('₹', '') || 0,
+      offerPrice: price?.replace('₹', '') || null
+    },
+    variant: {
+      _id: variant._id, // Ensure variant._id exists
+      color: variant.color || localSelectedColor,
+      size: variant.size || 'N/A',
+      price: variant.price || parseFloat(price?.replace('₹', '')) || 0,
+      stock: variant.stock || 0,
+      sku: variant.sku || '',
+      image: variant.variantImages?.[0]?.imageUrl || image || ''
+    },
+    quantity: 1,
+    // Add a computed ID to help with debugging
+    id: `${productIdToUse}_${variant._id}_${Date.now()}`
+  };
+
+  dispatch(addToCart(cartPayload));
+  toast.success('Added to cart');
+  
+  if (onCartUpdate) {
+    onCartUpdate();
+  }
+};
+  // Handle color selection
+  const handleColorSelect = (color, e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setLocalSelectedColor(color);
+  };
+
+  // Build the product URL with color parameter
+  const getProductUrl = () => {
+    if (!productId) return '#';
+    
+    let url = `/product/${productId}`;
+    
+    // Add color parameter if available
+    if (localSelectedColor) {
+      url += `?color=${encodeURIComponent(localSelectedColor)}`;
+    }
+    
+    return url;
+  };
+
+  // Get available colors from variants if not provided in props
+  const availableColors = colors.length > 0 ? colors : 
+    [...new Set(variants.map(v => v.color).filter(Boolean))];
+
+  const currentImage = variantImages[currentImageIndex];
+
   return (
-    <>
-      <div
-        onClick={handleCardClick}
-        onMouseEnter={handleMouseEnter}
-        onMouseLeave={handleMouseLeave}
-        className={`flex flex-col shadow-2xl px-5 py-3 rounded-xl ${styles.cardBg} ${
-          styles.theme === "dark" ? "shadow-gray-800" : ""
-        } items-start text-left group cursor-pointer relative transition-all duration-300 hover:shadow-xl overflow-hidden`}
+    <motion.div
+      initial={{ opacity: 0, y: 30 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+      whileHover={{ y: -5 }}
+      className="group relative"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={handleMouseLeave}
+    >
+      {/* Use product ID in the URL with color parameter */}
+      <Link 
+        to={getProductUrl()}
+        className="block relative rounded-xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300"
       >
-        
-  <div className="absolute top-2 left-2 z-20">
-    <VerticalAutoScrollBadge
-      product={safeProduct}
-      variant={safeProduct.variants?.[0]}
-      quantity={quantity}
-    />
-  </div>
-
-
-        <ProductImage 
-          product={safeProduct}
-          styles={styles}
-          isInWishlist={isInWishlist(safeProduct.id || safeProduct._id)}
-          user={user}
-          togglingWishlist={togglingWishlist}
-          onWishlistToggle={handleWishlistClick}
-        />
-        
-        <ProductInfo 
-          product={safeProduct}
-          hasStock={hasStock}
-          styles={styles}
-        />
-
-        <ProductActions
-          product={safeProduct}
-          hasStock={hasStock}
-          availableVariants={availableVariants}
-          addingToCart={addingToCart}
-          onAddToCart={handleAddToCartClick}
-          styles={styles}
-        />
-      </div>
-
-      {showVariantModal && (
-        <ModalPortal>
-          <VariantModal
-            product={safeProduct}
-            availableVariants={availableVariants}
-            selectedVariant={selectedVariant}
-            quantity={quantity}
-            addingToCart={addingToCart}
-            styles={styles}
-            onClose={closeModal}
-            onVariantSelect={handleVariantSelect}
-            onQuantityChange={handleQuantityChange}
-            onAddToCart={() => selectedVariant && addVariantToCart(selectedVariant, quantity)}
+        {/* Image Container with Auto-Cycle */}
+        <div className="relative w-full h-[500px] overflow-hidden">
+          <motion.img
+            key={currentImageIndex}
+            src={currentImage}
+            alt={`${name} - Image ${currentImageIndex + 1}`}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            onError={(e) => {
+              e.target.src = 'https://via.placeholder.com/400x500?text=Image+Error';
+            }}
           />
-        </ModalPortal>
-      )}
-    </>
+          
+          {/* Image Counter (only show if multiple images) */}
+          {variantImages.length > 1 && (
+            <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full">
+              <span className="text-xs text-white">
+                {currentImageIndex + 1}/{variantImages.length}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* Badges (NEW, SALE) */}
+        <div className="absolute top-3 left-3 flex flex-col gap-1">
+          {isNew && (
+            <span className="px-3 py-1 bg-black text-white text-xs font-bold rounded-sm">
+              # NEW
+            </span>
+          )}
+          {discount && (
+            <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-sm flex items-center gap-1">
+              <Tag className="w-3 h-3" />
+              {discount}
+            </span>
+          )}
+        </div>
+
+        {/* Wishlist / Like */}
+        <button
+          onClick={handleLikeClick}
+          className="absolute bottom-24 right-3 p-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full shadow-lg hover:scale-110 transition-transform z-10"
+        >
+          <Heart
+            className={`w-4 h-4 ${
+              isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-400'
+            }`}
+          />
+        </button>
+
+        {/* Product Info Overlay (inside image) */}
+        <div className="absolute bottom-0 left-0 w-full p-4 
+          bg-gradient-to-t from-black/90 to-transparent text-white z-10">
+
+          <h3 className="text-base font-medium mb-1 line-clamp-1">
+            {name}
+            {localSelectedColor && (
+              <span className="ml-2 text-sm text-gray-300">
+                ({localSelectedColor})
+              </span>
+            )}
+          </h3>
+
+          <div className="flex items-center justify-between">
+            <div>
+              {originalPrice && (
+                <div className="text-sm line-through text-gray-300">
+                  {originalPrice}
+                </div>
+              )}
+              <div className="text-lg font-bold text-white">
+                {price}
+              </div>
+            </div>
+
+            <button
+              onClick={handleAddToCartClick}
+              className="p-2 bg-white/20 backdrop-blur-md rounded hover:bg-white/30 transition-colors z-20"
+            >
+              <ShoppingBag className="w-4 h-4 text-white" />
+            </button>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
   );
 };
 

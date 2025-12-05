@@ -177,6 +177,7 @@ const {
           {/* Desktop Right Section */}
           <div className="hidden xl:flex items-center gap-3 relative z-50">
             <ThemeToggle theme={theme} toggleTheme={toggleTheme} />
+
             <motion.button
               onClick={() => setSearchOpen(true)}
               className={`p-3 rounded-xl transition-all duration-300 ${

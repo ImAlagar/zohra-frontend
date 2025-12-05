@@ -363,45 +363,60 @@ const handlePageSizeChange = (newSize) => {
       },
       className: 'w-12'
     },
-    {
-      key: 'name',
-      title: 'Product Name',
-      dataIndex: 'name',
-      sortable: true,
-      render: (value, record) => (
-        <div className="min-w-0">
-          <p className={`font-medium truncate ${themeStyles.text.primary}`}>{value}</p>
-          <p className={`text-sm truncate ${themeStyles.text.muted}`}>{record.productCode}</p>
-          <div className="flex items-center space-x-2 mt-1">
-            {record.isBestSeller && (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'
-              }`}>
-                <FiTrendingUp className="w-3 h-3 mr-1" />
-                Best Seller
-              </span>
-            )}
-            {record.isNewArrival && (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
-              }`}>
-                <FiClock className="w-3 h-3 mr-1" />
-                New
-              </span>
-            )}
-            {record.featured && (
-              <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
-                theme === 'dark' ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'
-              }`}>
-                <FiStar className="w-3 h-3 mr-1" />
-                Featured
-              </span>
-            )}
-          </div>
+{
+  key: 'name',
+  title: 'Product Name',
+  dataIndex: 'name',
+  sortable: true,
+  render: (value, record) => {
+    // Function to truncate text to 4 words
+    const truncateToWords = (text, wordCount = 4) => {
+      if (!text) return '';
+      const words = text.trim().split(/\s+/);
+      if (words.length <= wordCount) return text;
+      return words.slice(0, wordCount).join(' ') + '...';
+    };
+    
+    return (
+      <div className="min-w-0">
+        <p 
+          className={`font-medium truncate ${themeStyles.text.primary}`}
+          title={value} // Show full text on hover
+        >
+          {truncateToWords(value, 4)}
+        </p>
+        <p className={`text-sm truncate ${themeStyles.text.muted}`}>{record.productCode}</p>
+        <div className="flex items-center space-x-2 mt-1">
+          {record.isBestSeller && (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+              theme === 'dark' ? 'bg-yellow-900 text-yellow-200' : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              <FiTrendingUp className="w-3 h-3 mr-1" />
+              Best Seller
+            </span>
+          )}
+          {record.isNewArrival && (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+              theme === 'dark' ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800'
+            }`}>
+              <FiClock className="w-3 h-3 mr-1" />
+              New
+            </span>
+          )}
+          {record.featured && (
+            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${
+              theme === 'dark' ? 'bg-purple-900 text-purple-200' : 'bg-purple-100 text-purple-800'
+            }`}>
+              <FiStar className="w-3 h-3 mr-1" />
+              Featured
+            </span>
+          )}
         </div>
-      ),
-      className: 'min-w-48'
-    },
+      </div>
+    );
+  },
+  className: 'min-w-48'
+},
     {
       key: 'category',
       title: 'Category',

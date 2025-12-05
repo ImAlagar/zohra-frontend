@@ -1,11 +1,10 @@
 export const topbarMessages = [
-  "🌙 Soft & Comfortable Ladies Nighties",
-  "✨ New Nightwear Collections Available!",
-  "🚚 Free Shipping on All Orders",
-  "💳 Secure Payments • Cash on Delivery Available",
-  "⭐ Premium Quality Fabric for Peaceful Sleep"
+    "🚚 Free shipping for all orders",
+    "✨ New Arrivals Available", 
+    "💳 Secure Payment & Accept all cards",
+  "⭐ Premium Quality Cotton T-shirts!",
+  "💫 Custom Printing Available - Create Your Style!"
 ];
-
 
 export const navItems = [
   { name: "Mens", path: "/mens" },
