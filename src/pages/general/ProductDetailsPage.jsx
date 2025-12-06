@@ -201,19 +201,6 @@ const handleAddToCart = () => {
     toast.error(`Only ${variant.stock} items available`);
     return;
   }
-
-  // 🔥 CRITICAL FIX: Debug what IDs we actually have
-  console.log('🛒 Debug IDs before adding to cart:', {
-    product: product,
-    productId: product._id,
-    productIdType: typeof product._id,
-    variant: variant,
-    variantId: variant._id,
-    variantIdType: typeof variant._id,
-    allProductKeys: Object.keys(product),
-    allVariantKeys: Object.keys(variant)
-  });
-
   // 🔥 FIX: Check if we have proper MongoDB IDs
   // If _id is undefined, try other possible ID fields
   const productId = product._id || product.id || product.productId;
@@ -257,7 +244,6 @@ const handleAddToCart = () => {
     quantity
   };
 
-  console.log('✅ Cart payload with validated IDs:', cartPayload);
   
   dispatch(addToCart(cartPayload));
   toast.success('Added to cart');

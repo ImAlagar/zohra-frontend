@@ -172,7 +172,6 @@ const ProductCard = ({
     
     // Notify parent component about cart update
       if (onCartUpdate) {
-        console.log("CALLING onCartUpdate()");
         onCartUpdate(); // 🚀 SHOULD OPEN SIDEBAR
       }
   };

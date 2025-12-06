@@ -339,7 +339,6 @@ const Shop = () => {
 
   const handleAddToCart = (product) => {
     // Add to cart logic here
-    console.log('Adding to cart:', product);
     
     // Open cart sidebar after adding
     setShowCartSidebar(true);
