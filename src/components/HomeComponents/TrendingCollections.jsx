@@ -97,7 +97,6 @@ const TrendingCollections = () => {
   };
 
   const handleAddToCart = (product) => {
-    console.log("Add to cart:", product);
     // Your add to cart logic here
   };
 

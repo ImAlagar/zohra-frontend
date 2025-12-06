@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   FiX,
@@ -109,7 +109,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
         onClick={onClose}
         className="px-6 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-medium hover:opacity-90 transition"
       >
-        Continue Shopping
+        <Link to={'/shop'}>Continue Shopping</Link>
       </button>
     </div>
   );

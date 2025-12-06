@@ -70,50 +70,220 @@ const DescriptionTab = ({ product }) => (
   </div>
 );
 
-const SpecificationsTab = ({ product, availableSizes }) => (
-  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+const SpecificationsTab = ({ product, availableSizes }) => {
+  // Helper function to safely render any value
+  const renderSpecValue = (value) => {
+    if (!value) return '-';
+    
+    if (typeof value === 'string' || typeof value === 'number') {
+      return value;
+    }
+    
+    if (typeof value === 'object') {
+      // If it has a name property, use it
+      if (value.name) return value.name;
+      // If it has a title property, use it
+      if (value.title) return value.title;
+      // If it's an array, join with commas
+      if (Array.isArray(value)) {
+        return value.map(item => 
+          typeof item === 'object' ? item.name || item.title || 'N/A' : item
+        ).join(', ');
+      }
+      // Otherwise, stringify safely
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return String(value);
+      }
+    }
+    
+    return String(value);
+  };
+
+  // Get specifications from product - handle both specifications and productDetails
+  const productDetails = product?.productDetails || [];
+  const variants = product?.variants || [];
+  
+  // Extract fabric/material info from description or variants
+  const getMaterialInfo = () => {
+    // Check if material is explicitly provided
+    if (product.material) return product.material;
+    
+    // Try to extract from description
+    const description = product.description || '';
+    const materialKeywords = ['cotton', 'polyester', 'silk', 'linen', 'wool', 'nylon', 'spandex', 'viscose'];
+    
+    for (const keyword of materialKeywords) {
+      if (description.toLowerCase().includes(keyword)) {
+        return `100% ${keyword.charAt(0).toUpperCase() + keyword.slice(1)}`;
+      }
+    }
+    
+    return '100% Cotton'; // Default fallback
+  };
+
+  // Get care instructions
+  const getCareInstructions = () => {
+    if (product.careInstructions) return product.careInstructions;
+    
+    // Try to extract from description
+    const description = product.description || '';
+    const careKeywords = ['machine wash', 'hand wash', 'dry clean', 'iron', 'tumble dry'];
+    
+    for (const keyword of careKeywords) {
+      if (description.toLowerCase().includes(keyword)) {
+        return keyword.charAt(0).toUpperCase() + keyword.slice(1);
+      }
+    }
+    
+    return 'Machine Wash'; // Default fallback
+  };
+
+  // Get unique colors from variants
+  const availableColors = [...new Set(variants.map(v => v?.color).filter(Boolean))];
+
+  return (
     <div>
-      <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Material & Care</h4>
-      <table className="w-full">
-        <tbody>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
-            <td className="py-2 text-gray-600 dark:text-gray-400">Material</td>
-            <td className="py-2 text-gray-900 dark:text-white font-medium">100% Cotton</td>
-          </tr>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
-            <td className="py-2 text-gray-600 dark:text-gray-400">Care Instructions</td>
-            <td className="py-2 text-gray-900 dark:text-white font-medium">Machine Wash</td>
-          </tr>
-          <tr>
-            <td className="py-2 text-gray-600 dark:text-gray-400">Fit</td>
-            <td className="py-2 text-gray-900 dark:text-white font-medium">Regular Fit</td>
-          </tr>
-        </tbody>
-      </table>
+      {/* Static specifications with dynamic data */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div>
+          <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Material & Care</h4>
+          <table className="w-full">
+            <tbody>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <td className="py-2 text-gray-600 dark:text-gray-400">Material</td>
+                <td className="py-2 text-gray-900 dark:text-white font-medium">
+                  {getMaterialInfo()}
+                </td>
+              </tr>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <td className="py-2 text-gray-600 dark:text-gray-400">Care Instructions</td>
+                <td className="py-2 text-gray-900 dark:text-white font-medium">
+                  {getCareInstructions()}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 text-gray-600 dark:text-gray-400">Fit</td>
+                <td className="py-2 text-gray-900 dark:text-white font-medium">
+                  {product.fit || 'Regular Fit'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div>
+          <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Product Details</h4>
+          <table className="w-full">
+            <tbody>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <td className="py-2 text-gray-600 dark:text-gray-400">Product Code</td>
+                <td className="py-2 text-gray-900 dark:text-white font-medium">
+                  {product.productCode || 'N/A'}
+                </td>
+              </tr>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <td className="py-2 text-gray-600 dark:text-gray-400">Category</td>
+                <td className="py-2 text-gray-900 dark:text-white font-medium">
+                  {renderSpecValue(product.category)}
+                </td>
+              </tr>
+              <tr className="border-b border-gray-200 dark:border-gray-700">
+                <td className="py-2 text-gray-600 dark:text-gray-400">Available Colors</td>
+                <td className="py-2 text-gray-900 dark:text-white font-medium">
+                  {availableColors.length > 0 ? availableColors.join(', ') : 'Single Color'}
+                </td>
+              </tr>
+              <tr>
+                <td className="py-2 text-gray-600 dark:text-gray-400">Available Sizes</td>
+                <td className="py-2 text-gray-900 dark:text-white font-medium">
+                  {availableSizes.length > 0 ? availableSizes.join(', ') : 'One Size'}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Dynamic product details from API */}
+      {productDetails.length > 0 && (
+        <div className="mt-8">
+          <h4 className="font-semibold mb-4 text-gray-900 dark:text-white">Product Specifications</h4>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-full">
+              <tbody>
+                {productDetails.map((detail, index) => (
+                  <tr 
+                    key={detail.id || index} 
+                    className={`border-b border-gray-200 dark:border-gray-700 ${
+                      index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''
+                    }`}
+                  >
+                    <td className="py-3 px-4 font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
+                      {detail.title || detail.name || `Detail ${index + 1}`}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {renderSpecValue(detail.description)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Additional product info from variants */}
+      {variants.length > 0 && (
+        <div className="mt-8">
+          <h4 className="font-semibold mb-4 text-gray-900 dark:text-white">Variant Information</h4>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-full">
+              <thead>
+                <tr className="border-b border-gray-200 dark:border-gray-700">
+                  <th className="py-3 px-4 text-left font-semibold text-gray-700 dark:text-gray-300">Color</th>
+                  <th className="py-3 px-4 text-left font-semibold text-gray-700 dark:text-gray-300">Size</th>
+                  <th className="py-3 px-4 text-left font-semibold text-gray-700 dark:text-gray-300">Stock</th>
+                  <th className="py-3 px-4 text-left font-semibold text-gray-700 dark:text-gray-300">SKU</th>
+                </tr>
+              </thead>
+              <tbody>
+                {variants.map((variant, index) => (
+                  <tr 
+                    key={variant.id || index} 
+                    className={`border-b border-gray-200 dark:border-gray-700 ${
+                      index % 2 === 0 ? 'bg-gray-50 dark:bg-gray-800/50' : ''
+                    }`}
+                  >
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {variant.color || 'N/A'}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {variant.size || 'N/A'}
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      <span className={`font-medium ${
+                        variant.stock > 0 
+                          ? 'text-green-600 dark:text-green-400' 
+                          : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {variant.stock > 0 ? `${variant.stock} available` : 'Out of stock'}
+                      </span>
+                    </td>
+                    <td className="py-3 px-4 text-gray-600 dark:text-gray-400">
+                      {variant.sku || 'N/A'}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
     </div>
-    <div>
-      <h4 className="font-semibold mb-3 text-gray-900 dark:text-white">Product Details</h4>
-      <table className="w-full">
-        <tbody>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
-            <td className="py-2 text-gray-600 dark:text-gray-400">Product Code</td>
-            <td className="py-2 text-gray-900 dark:text-white font-medium">{product.productCode || 'N/A'}</td>
-          </tr>
-          <tr className="border-b border-gray-200 dark:border-gray-700">
-            <td className="py-2 text-gray-600 dark:text-gray-400">Category</td>
-            <td className="py-2 text-gray-900 dark:text-white font-medium">{product.category}</td>
-          </tr>
-          <tr>
-            <td className="py-2 text-gray-600 dark:text-gray-400">Available Sizes</td>
-            <td className="py-2 text-gray-900 dark:text-white font-medium">
-              {availableSizes.length > 0 ? availableSizes.join(', ') : 'One Size'}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-);
+  );
+}; 
+
 
 const ReviewsTab = ({ totalRatings, avgRating, productId }) => (
   <div className="space-y-6">

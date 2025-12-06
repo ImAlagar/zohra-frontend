@@ -1,9 +1,9 @@
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../../context/ThemeContext';
 import { useWishlist } from '../../../hooks/useWishlist';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import ProductCard from '../../../components/ProductCard/ProductCard';
-import { Heart, Trash2, ShoppingBag } from "lucide-react";
+import { Heart, Trash2, ShoppingBag, AlertCircle } from "lucide-react";
 import CartSidebar from '../../../components/layout/CartSidebar';
 import { useSelector } from 'react-redux';
 import placeholderimage from "../../../assets/images/placeholder.jpg";
@@ -11,6 +11,7 @@ import placeholderimage from "../../../assets/images/placeholder.jpg";
 const UserWishlist = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
+  const user = useSelector((state) => state.auth.user);
   const { 
     wishlistItems, 
     clearAllWishlist, 
@@ -20,6 +21,9 @@ const UserWishlist = () => {
 
   const [showCartSidebar, setShowCartSidebar] = useState(false);
 
+
+
+
   // Dynamic styles based on theme
   const isDark = theme === "dark";
   const bgColor = isDark ? "bg-black" : "bg-white";
@@ -28,12 +32,16 @@ const UserWishlist = () => {
 
   // Cart update handler
   const handleCartUpdate = () => {
-    console.log('Cart update triggered from UserWishlist');
-    setShowCartSidebar(true);
+      setShowCartSidebar(true);
   };
 
-  // Enhanced transformation function
-  const transformWishlistItem = (wishlistItem) => {
+  // Remove from wishlist
+  const handleRemoveFromWishlist = (productId) => {
+    removeItemFromWishlist(productId);
+  };
+
+  // Enhanced transformation with debugging
+  const transformWishlistItem = (wishlistItem, index) => {
     if (!wishlistItem?.product) {
       console.warn('Invalid wishlist item:', wishlistItem);
       return null;
@@ -41,8 +49,11 @@ const UserWishlist = () => {
 
     const product = wishlistItem.product;
     const variant = wishlistItem.variant;
+    
+    
+    // Get the correct product ID
     const productId = product._id || product.id;
-
+    
     // Get all available images for the product
     const getProductImages = () => {
       const allImages = [];
@@ -54,7 +65,7 @@ const UserWishlist = () => {
       
       // Add product images from images array
       if (product.images && Array.isArray(product.images)) {
-        product.images.forEach((img) => {
+        product.images.forEach((img, idx) => {
           if (typeof img === 'string') {
             allImages.push(img);
           } else if (img?.imageUrl) {
@@ -83,8 +94,11 @@ const UserWishlist = () => {
 
     const productImages = getProductImages();
 
+
+
     // Determine the correct price
     const getCorrectPrice = () => {
+      // Try in this order: variant price -> product offer price -> product normal price -> product price -> 0
       const price = variant?.price || 
                     product?.offerPrice || 
                     product?.normalPrice || 
@@ -102,7 +116,7 @@ const UserWishlist = () => {
           _id: variant._id || `${productId}-${variant.color || 'default'}`,
           color: variant.color || 'Default',
           size: variant.size || 'N/A',
-          price: correctPrice,
+          price: correctPrice, // Use the correct price
           stock: variant.stock || product.stock || 0,
           variantImages: productImages.map(image => ({ imageUrl: image })),
           sku: variant.sku || '',
@@ -140,37 +154,52 @@ const UserWishlist = () => {
       return null;
     };
 
-    const discountLabel = calculateDiscount();
-
-    return {
+    const transformedProduct = {
       id: productId,
       _id: productId,
       name: product.name || 'Product Name',
       title: product.name || 'Product Name',
       category: product.category || 'Uncategorized',
-      price: correctPrice, // Use number, not string
+      price: `${correctPrice}`, // Use the correct price
       originalPrice: product.normalPrice && product.offerPrice && product.offerPrice < product.normalPrice 
-        ? product.normalPrice 
+        ? `₹${product.normalPrice}` 
         : null,
-      discount: discountLabel,
+      discount: calculateDiscount(),
       image: productImages[0] || placeholderimage,
       variants: variants,
       colors: [...new Set(variants.map(v => v.color).filter(Boolean))],
       inStock: variants.some(v => v.stock > 0),
       normalPrice: product.normalPrice || 0,
       offerPrice: product.offerPrice || 0,
+      wholesalePrice: product.wholesalePrice || 0,
+      isWholesaleUser: user?.role === 'WHOLESALER',
+      avgRating: product.avgRating || 0,
+      totalRatings: product.totalRatings || 0,
+      isFeatured: product.featured || false,
+      isNewArrival: product.isNewArrival || false,
+      isBestSeller: product.isBestSeller || false,
       isNew: isNew,
       color: variant?.color || product.color || '',
       baseProductId: product.baseProductId || productId,
       description: product.description || '',
-      stock: product.stock || 0
+      stock: product.stock || 0,
+      // Add raw data for debugging
+      _rawProduct: product,
+      _rawVariant: variant
     };
+
+    return transformedProduct;
   };
 
   // Filter out invalid products
   const transformedProducts = wishlistItems
     .map(transformWishlistItem)
     .filter(product => product !== null && (product.id || product._id));
+
+
+  // Debug cart add function
+
+
 
   return (
     <section className={`py-12 transition-colors duration-500 ${bgColor} min-h-screen`}>
@@ -203,10 +232,13 @@ const UserWishlist = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 px-6 md:px-16">
           {transformedProducts.map((product, index) => (
             <div key={product.id || product._id || index} className="relative group">
+
               <ProductCard 
                 product={product} 
                 onCartUpdate={handleCartUpdate}
               />
+
+            
             </div>
           ))}
         </div>
@@ -234,11 +266,12 @@ const UserWishlist = () => {
         </div>
       )}
 
-      {/* Cart Sidebar - FIXED: onClose should set to false */}
+      {/* Cart Sidebar */}
       <CartSidebar
         isOpen={showCartSidebar} 
         onClose={() => setShowCartSidebar(false)} 
       />
+
     </section>
   );
 }

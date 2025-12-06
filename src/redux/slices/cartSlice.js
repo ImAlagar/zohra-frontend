@@ -1,7 +1,5 @@
-// slices/cartSlice.js - FIXED VERSION
 import { createSlice } from '@reduxjs/toolkit';
 import placeholderimage from "../../assets/images/placeholder.jpg"
-
 
 const getCartStorageKey = (userId = 'guest') => `cart_${userId}`;
 
@@ -16,6 +14,22 @@ const loadCartFromStorage = (userId = 'guest') => {
     console.error('Error loading cart from storage:', error);
     return { items: [], userId };
   }
+};
+
+// Helper function to normalize variant IDs
+const normalizeVariantId = (variantId, productId, variantColor) => {
+  if (!variantId) return `${productId}_default`;
+  
+  // Remove any '-default' suffix for comparison
+  const cleanId = variantId.replace(/-default$/, '');
+  
+  // If it's still just the product ID, add color info
+  if (cleanId === productId) {
+    const colorSlug = variantColor ? variantColor.toLowerCase().replace(/\s+/g, '-') : 'default';
+    return `${productId}_${colorSlug}`;
+  }
+  
+  return cleanId;
 };
 
 const cartSlice = createSlice({
@@ -49,12 +63,29 @@ const cartSlice = createSlice({
         quantity: Math.max(1, Number(newItem.quantity) || 1)
       };
 
-      const existingItemIndex = state.items.findIndex(
-        item => 
-          item.product._id === cartItem.product._id && 
-          item.variant._id === cartItem.variant._id
+      
+      // ✅ FIXED: Use normalized variant IDs for comparison
+      const normalizedVariantId = normalizeVariantId(
+        cartItem.variant._id, 
+        cartItem.product._id,
+        cartItem.variant.color
       );
       
+      const existingItemIndex = state.items.findIndex(item => {
+        const itemNormalizedId = normalizeVariantId(
+          item.variant._id,
+          item.product._id,
+          item.variant.color
+        );
+        
+        // Check if same product and (same variant OR same color)
+        const sameProduct = item.product._id === cartItem.product._id;
+        const sameVariant = itemNormalizedId === normalizedVariantId;
+        const sameColor = item.variant.color === cartItem.variant.color;
+        
+        return sameProduct && (sameVariant || sameColor);
+      });
+
       if (existingItemIndex !== -1) {
         // Update quantity if item exists
         state.items[existingItemIndex].quantity += cartItem.quantity;

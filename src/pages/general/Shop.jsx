@@ -21,6 +21,7 @@ import { useTheme } from '../../context/ThemeContext';
 import { useGetAllProductsQuery } from '../../redux/services/productService';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import ProductCard from '../../components/ProductCard/ProductCard';
+import CartSidebar from '../../components/layout/CartSidebar';
 
 const Shop = () => {
   const { theme } = useTheme();
@@ -39,6 +40,8 @@ const Shop = () => {
   const [productsPerPage] = useState(12);
   const [likedProducts, setLikedProducts] = useState({});
   const [categoryName, setCategoryName] = useState('');
+    const [showCartSidebar, setShowCartSidebar] = useState(false);
+
 
   // Theme-based styling
   const themeStyles = {
@@ -335,9 +338,13 @@ const Shop = () => {
   };
 
   const handleAddToCart = (product) => {
-    console.log('Add to cart:', product);
     // Add to cart logic here
+    console.log('Adding to cart:', product);
+    
+    // Open cart sidebar after adding
+    setShowCartSidebar(true);
   };
+
 
   const clearAllFilters = () => {
     setSelectedSizes([]);
@@ -985,6 +992,12 @@ const Shop = () => {
           </div>
         </div>
       </div>
+
+            {/* Cart Sidebar */}
+        <CartSidebar 
+          isOpen={showCartSidebar} 
+          onClose={() => setShowCartSidebar(false)} 
+        />
     </div>
   );
 };

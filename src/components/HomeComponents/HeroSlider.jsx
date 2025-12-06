@@ -182,114 +182,166 @@ const HeroSlider = () => {
               </div>
 
               {/* Content Container */}
-              <div className="relative h-full flex items-center">
-                <div className="container mx-auto px-4 sm:px-6 lg:px-8 w-full">
-                  <div className={`flex flex-col ${slide.layout === 'right' ? 'lg:flex-row-reverse' : 'lg:flex-row'} items-center justify-between gap-6 sm:gap-8 md:gap-10 lg:gap-12`}>
-                    
-                    {/* Text Content */}
-                    <motion.div
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 }}
-                      className={`w-full ${slide.layout === 'right' ? 'lg:w-1/2 lg:text-right lg:pl-8 xl:pl-12' : 'lg:w-1/2 lg:pr-8 xl:pr-12'} text-center lg:text-left px-2 sm:px-4 md:px-6`}
-                    >
-                      {/* Small text or badge */}
-                      {slide.smallText && (
-                        <div className={`flex items-center gap-2 mb-3 sm:mb-4 ${slide.layout === 'right' ? 'lg:justify-end' : 'justify-center lg:justify-start'}`}>
-                          <AnimatedIcon 
-                            icon={getSlideIcon(slide)}
-                            animation="pulse"
-                            className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-amber-400"
-                          />
-                          <span className="text-xs sm:text-sm md:text-base font-medium text-amber-400 tracking-wider">
-                            {slide.smallText}
-                          </span>
-                        </div>
-                      )}
+<div className="relative h-full flex items-center">
+  <div className="container mx-auto px-4 sm:px-6 lg:px-8 w-full">
 
-                      {/* Offer text */}
-                      {slide.offerText && (
-                        <motion.div
-                          initial={{ scale: 0.9 }}
-                          animate={{ scale: 1 }}
-                          className={`inline-block px-3 py-1.5 sm:px-4 sm:py-2 md:px-4 md:py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full mb-4 sm:mb-5 md:mb-6 ${slide.layout === 'right' ? 'lg:text-right' : ''}`}
-                        >
-                          <span className="font-bold text-xs sm:text-sm md:text-base">{slide.offerText}</span>
-                        </motion.div>
-                      )}
+    {/* MAIN FLEX — MOBILE: COLUMN (IMAGE TOP), DESKTOP: YOUR ORIGINAL ORDER */}
+    <div
+      className={`
+        flex flex-col 
+        ${slide.layout === 'right' ? 'lg:flex-row-reverse' : 'lg:flex-row'}
+        items-center justify-between 
+        gap-6 sm:gap-8 md:gap-10 lg:gap-12
+      `}
+    >
 
-                      {/* Title - Responsive font sizes */}
-                      <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold ${textPrimary} mb-3 sm:mb-4 leading-tight sm:leading-tight md:leading-tight`}>
-                        {slide.title || 'Premium Collection'}
-                      </h1>
-                      
-                      {/* Subtitle */}
-                      {slide.subtitle && (
-                        <p className={`text-sm sm:text-base md:text-lg lg:text-xl ${textSecondary} mb-3 sm:mb-4 max-w-xs sm:max-w-sm md:max-w-xl mx-auto lg:mx-0 ${slide.layout === 'right' ? 'lg:ml-auto' : ''}`}>
-                          {slide.subtitle}
-                        </p>
-                      )}
-                      
-                      {/* Description - Hide on very small screens, show from sm */}
-                      {slide.description && (
-                        <p className={`hidden sm:block text-xs sm:text-sm md:text-base lg:text-lg ${textSecondary} mb-4 sm:mb-5 md:mb-6 max-w-xs sm:max-w-sm md:max-w-lg mx-auto lg:mx-0 ${slide.layout === 'right' ? 'lg:ml-auto' : ''}`}>
-                          {slide.description}
-                        </p>
-                      )}
+      {/* ------------ IMAGE FIRST ON MOBILE ------------ */}
+      {slide.image && (
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          
+          /* MOBILE = ORDER 1 (IMAGE TOP)  
+             DESKTOP = ORDER BASED ON layout */
+          className={`
+            w-full sm:w-auto lg:w-1/2
+            flex justify-center
+            mt-4 sm:mt-0
 
-                      {/* CTA Buttons - Stack on mobile, row on larger */}
-                      <div className={`flex flex-col sm:flex-row gap-3 sm:gap-4 ${slide.layout === 'right' ? 'lg:justify-end' : 'justify-center lg:justify-start'}`}>
-                        {slide.buttonText && (
-                          <motion.button
-                            whileHover={HOVER_ANIMATIONS.button}
-                            whileTap={{ scale: 0.95 }}
-                            onClick={() => handleButtonClick(slide.buttonLink)}
-                            className={`px-4 py-2.5 sm:px-5 sm:py-3 md:px-6 md:py-3 lg:px-7 lg:py-3.5 ${buttonGradient} text-white rounded-full font-semibold text-xs sm:text-sm md:text-base lg:text-lg flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-300 min-w-[140px] sm:min-w-[160px]`}
-                          >
-                            {slide.buttonText}
-                            <ArrowRight size={16} className="sm:w-4 sm:h-4 md:w-5 md:h-5" />
-                          </motion.button>
-                        )}
-                      </div>
-                    </motion.div>
+            ${slide.layout === 'right' ? 'lg:order-first' : 'lg:order-last'}
+            order-1
+          `}
+        >
+          <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
+            <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg sm:shadow-xl lg:shadow-2xl">
+              <img
+                src={slide.image}
+                alt={slide.title || 'Product'}
+                className={`${getImageSize()} object-cover`}
+                loading="lazy"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
+            </div>
 
-                    {/* Main Product Image - Show from sm screen, adjust visibility */}
-                    {slide.image && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: 0.4, duration: 0.6 }}
-                        className={`w-full sm:w-auto lg:w-1/2 flex justify-center mt-4 sm:mt-0 ${slide.layout === 'right' ? 'lg:order-first' : ''}`}
-                      >
-                        <div className="relative w-full max-w-xs sm:max-w-sm md:max-w-md lg:max-w-lg">
-                          {/* Image container with responsive sizing */}
-                          <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-lg sm:shadow-xl lg:shadow-2xl">
-                            <img
-                              src={slide.image}
-                              alt={slide.title || 'Product'}
-                              className={`${getImageSize()} object-cover`}
-                              loading="lazy"
-                            />
-                            {/* Gradient overlay for depth */}
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent"></div>
-                          </div>
-                          
-                          {/* Floating decorative elements - Hide on smallest screens */}
-                          <div className="hidden sm:block absolute -top-3 -left-3 sm:-top-4 sm:-left-4 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-purple-500/10 rounded-full blur-xl"></div>
-                          <div className="hidden sm:block absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 bg-pink-500/10 rounded-full blur-xl"></div>
-                          
-                          {/* Optional badge on image */}
-                          {slide.offerText && (
-                            <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-full shadow-lg">
-                              <span className="font-bold text-xs sm:text-sm">NEW</span>
-                            </div>
-                          )}
-                        </div>
-                      </motion.div>
-                    )}
-                  </div>
-                </div>
+            {/* Decorations */}
+            <div className="hidden sm:block absolute -top-3 -left-3 sm:-top-4 sm:-left-4 w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 bg-purple-500/10 rounded-full blur-xl"></div>
+            <div className="hidden sm:block absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 bg-pink-500/10 rounded-full blur-xl"></div>
+
+            {/* Optional badge */}
+            {slide.offerText && (
+              <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white px-2.5 py-1.5 sm:px-3 sm:py-2 md:px-4 md:py-2 rounded-full shadow-lg">
+                <span className="font-bold text-xs sm:text-sm">NEW</span>
               </div>
+            )}
+          </div>
+        </motion.div>
+      )}
+
+      {/* ------------ TEXT SECOND ON MOBILE ------------ */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.2 }}
+
+        /* MOBILE = ORDER 2 (CONTENT BOTTOM)
+           DESKTOP = YOUR NORMAL ORDER */
+        className={`
+          w-full
+          order-2
+          ${slide.layout === 'right' 
+            ? 'lg:w-1/2 lg:text-right lg:pl-8 xl:pl-12' 
+            : 'lg:w-1/2 lg:pr-8 xl:pr-12'}
+          text-center lg:text-left 
+          px-2 sm:px-4 md:px-6
+        `}
+      >
+
+        {/* Small text */}
+        {slide.smallText && (
+          <div
+            className={`flex items-center gap-2 mb-3 sm:mb-4 ${
+              slide.layout === 'right'
+                ? 'lg:justify-end'
+                : 'justify-center lg:justify-start'
+            }`}
+          >
+            <AnimatedIcon
+              icon={getSlideIcon(slide)}
+              animation="pulse"
+              className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-amber-400"
+            />
+            <span className="text-xs sm:text-sm md:text-base font-medium text-amber-400 tracking-wider">
+              {slide.smallText}
+            </span>
+          </div>
+        )}
+
+        {/* Offer text */}
+        {slide.offerText && (
+          <motion.div
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            className={`inline-block px-3 py-1.5 sm:px-4 sm:py-2 md:px-4 md:py-2 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-full mb-4 sm:mb-5 md:mb-6 ${
+              slide.layout === 'right' ? 'lg:text-right' : ''
+            }`}
+          >
+            <span className="font-bold text-xs sm:text-sm md:text-base">{slide.offerText}</span>
+          </motion.div>
+        )}
+
+        {/* Title */}
+        <h1 className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl xl:text-6xl 2xl:text-7xl font-bold ${textPrimary} mb-3 sm:mb-4 leading-tight`}>
+          {slide.title}
+        </h1>
+
+        {/* Subtitle */}
+        {slide.subtitle && (
+          <p
+            className={`text-sm sm:text-base md:text-lg lg:text-xl ${textSecondary} mb-3 sm:mb-4 max-w-xs sm:max-w-sm md:max-w-xl mx-auto lg:mx-0 ${
+              slide.layout === 'right' ? 'lg:ml-auto' : ''
+            }`}
+          >
+            {slide.subtitle}
+          </p>
+        )}
+
+        {/* Description */}
+        {slide.description && (
+          <p
+            className={`hidden sm:block text-xs sm:text-sm md:text-base lg:text-lg ${textSecondary} mb-4 sm:mb-5 md:mb-6 max-w-xs sm:max-w-sm md:max-w-lg mx-auto lg:mx-0 ${
+              slide.layout === 'right' ? 'lg:ml-auto' : ''
+            }`}
+          >
+            {slide.description}
+          </p>
+        )}
+
+        {/* CTA Buttons */}
+        <div
+          className={`flex flex-col sm:flex-row gap-3 sm:gap-4 ${
+            slide.layout === 'right'
+              ? 'lg:justify-end'
+              : 'justify-center lg:justify-start'
+          }`}
+        >
+          {slide.buttonText && (
+            <motion.button
+              whileHover={HOVER_ANIMATIONS.button}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => handleButtonClick(slide.buttonLink)}
+              className={`px-4 py-2.5 sm:px-5 sm:py-3 md:px-6 md:py-3 lg:px-7 lg:py-3.5 ${buttonGradient} text-white rounded-full font-semibold text-xs sm:text-sm md:text-base lg:text-lg flex items-center justify-center gap-1.5 sm:gap-2 transition-all duration-300 min-w-[140px] sm:min-w-[160px]`}
+            >
+              {slide.buttonText}
+              <ArrowRight size={16} className="sm:w-4 sm:h-4 md:w-5 md:h-5" />
+            </motion.button>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  </div>
+</div>
+
             </motion.div>
           )
         ))}

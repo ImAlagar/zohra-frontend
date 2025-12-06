@@ -489,35 +489,48 @@ const MetricCard = ({ icon: Icon, value, label, subtitle, color = "gray" }) => {
             <h2 className={`text-lg sm:text-xl font-semibold font-instrument mb-4 ${currentTheme.text.primary}`}>
               Top Performing Products
             </h2>
-            <div className="space-y-3">
-              {data.topProducts && data.topProducts.length > 0 ? (
-                data.topProducts.map((product, index) => (
-                  <div
-                    key={product.id || index}
-                    className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 rounded-lg ${currentTheme.bg.secondary} gap-2 sm:gap-0`}
-                  >
-                    <div className="flex items-center space-x-3 w-full sm:w-auto">
-                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
-                        {index + 1}
-                      </div>
-                      <div className="truncate">
-                        <p className={`font-medium ${currentTheme.text.primary} truncate`}>{product.name}</p>
-                        <p className={`text-sm ${currentTheme.text.muted}`}>{product.sales} sales</p>
-                      </div>
-                    </div>
-                    <div className="text-right mt-2 sm:mt-0 sm:ml-auto">
-                      <p className={`font-semibold ${currentTheme.text.primary}`}>₹{product.revenue?.toLocaleString() || 0}</p>
-                      <p className="text-sm text-green-500 dark:text-green-400">+{product.growth}%</p>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <div className="text-center py-6">
-                  <Package size={48} className={`mx-auto ${currentTheme.text.muted} mb-2`} />
-                  <p className={currentTheme.text.muted}>No products data available</p>
-                </div>
-              )}
+<div className="space-y-3">
+  {data.topProducts && data.topProducts.length > 0 ? (
+    data.topProducts.map((product, index) => {
+      // Split name into words and take first 5-6 words
+      const words = product.name.split(' ');
+      const displayName = words.length > 6 
+        ? words.slice(0, 6).join(' ') + '...'
+        : product.name;
+      
+      return (
+        <div
+          key={product.id || index}
+          className={`flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 rounded-lg ${currentTheme.bg.secondary} gap-2 sm:gap-0`}
+        >
+          <div className="flex items-center space-x-3 w-full sm:w-auto">
+            <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-bold flex-shrink-0">
+              {index + 1}
             </div>
+            <div className="truncate">
+              <p 
+                className={`font-medium ${currentTheme.text.primary} truncate`}
+                title={product.name} // Show full name on hover
+              >
+                {displayName}
+              </p>
+              <p className={`text-sm ${currentTheme.text.muted}`}>{product.sales} sales</p>
+            </div>
+          </div>
+          <div className="text-right mt-2 sm:mt-0 sm:ml-auto">
+            <p className={`font-semibold ${currentTheme.text.primary}`}>₹{product.revenue?.toLocaleString() || 0}</p>
+            <p className="text-sm text-green-500 dark:text-green-400">+{product.growth}%</p>
+          </div>
+        </div>
+      );
+    })
+  ) : (
+    <div className="text-center py-6">
+      <Package size={48} className={`mx-auto ${currentTheme.text.muted} mb-2`} />
+      <p className={currentTheme.text.muted}>No products data available</p>
+    </div>
+  )}
+</div>
           </motion.div>
 
           </div>

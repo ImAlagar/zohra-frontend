@@ -14,6 +14,7 @@ const ProductCard = ({
 }) => {
   const dispatch = useDispatch();
   const wishlistItems = useSelector((state) => state.wishlist.items);
+  const user = useSelector((state) => state.auth.user);
 
   const {
     _id,
@@ -117,86 +118,66 @@ const ProductCard = ({
     }
   };
 
-  // Handle add to cart click - FIXED VERSION
-const handleAddToCartClick = (e) => {
-  e.preventDefault();
-  e.stopPropagation();
-
-  console.log('Add to cart clicked for product:', productId);
-  console.log('Product data:', product);
-
-  // Find the variant for selected color
-  let variant;
-  if (localSelectedColor && variants.length > 0) {
-    variant = variants.find(v => v.color === localSelectedColor);
-  }
-
-  // If no variant found, use first available variant
-  if (!variant && variants.length > 0) {
-    variant = variants[0];
-  }
-
-  if (!variant) {
-    console.error('No variant found for product:', productId);
-    toast.error('Please select options on product page');
-    return;
-  }
-
-  if (variant.stock <= 0) {
-    toast.error('Product is out of stock');
-    return;
-  }
-
-  // Ensure price is a number
-  const productPrice = typeof price === 'string' ? parseFloat(price.replace('₹', '')) : price;
-  const productOriginalPrice = originalPrice ? 
-    (typeof originalPrice === 'string' ? parseFloat(originalPrice.replace('₹', '')) : originalPrice) : 
-    null;
-
-  const cartPayload = {
-    product: {
-      _id: productId,
-      name: name,
-      description: product.description || '',
-      category: product.category || 'Uncategorized',
-      images: variantImages,
-      image: image || variantImages[0] || '',
-      normalPrice: productOriginalPrice || 0,
-      offerPrice: productPrice || null
-    },
-    variant: {
-      _id: variant._id || productId,
-      color: variant.color || localSelectedColor,
-      size: variant.size || 'N/A',
-      price: variant.price || productPrice || 0,
-      stock: variant.stock || product.stock || 0,
-      sku: variant.sku || '',
-      image: variant.variantImages?.[0]?.imageUrl || image || ''
-    },
-    quantity: 1
-  };
-
-  console.log('Cart payload to dispatch:', cartPayload);
-  
-  // Dispatch and check response
-  const result = dispatch(addToCart(cartPayload));
-  console.log('Dispatch result:', result);
-  
-  toast.success('Added to cart');
-  
-  // Notify parent component about cart update
-  if (onCartUpdate) {
-    console.log('Calling onCartUpdate callback');
-    onCartUpdate();
-  }
-};
-
-  // Handle color selection
-  const handleColorSelect = (color, e) => {
+  // Handle add to cart click
+  const handleAddToCartClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
-    setLocalSelectedColor(color);
+
+    // Find the variant for selected color
+    let variant;
+    if (localSelectedColor && variants.length > 0) {
+      variant = variants.find(v => v.color === localSelectedColor);
+    }
+
+    // If no variant found, use first available variant
+    if (!variant && variants.length > 0) {
+      variant = variants[0];
+    }
+
+    if (!variant) {
+      toast.error('Please select options on product page');
+      return;
+    }
+
+    if (variant.stock <= 0) {
+      toast.error('Product is out of stock');
+      return;
+    }
+
+    const cartPayload = {
+      product: {
+        _id: productId,
+        name: name,
+        description: product.description || '',
+        category: product.category || 'Uncategorized',
+        images: variantImages,
+        image: image || variantImages[0] || '',
+        normalPrice: originalPrice?.replace('₹', '') || 0,
+        offerPrice: price?.replace('₹', '') || null
+      },
+      variant: {
+        _id: variant._id,
+        color: variant.color || localSelectedColor,
+        size: variant.size || 'N/A',
+        price: variant.price || parseFloat(price?.replace('₹', '')) || 0,
+        stock: variant.stock || 0,
+        sku: variant.sku || '',
+        image: variant.variantImages?.[0]?.imageUrl || image || ''
+      },
+      quantity: 1
+    };
+
+    dispatch(addToCart(cartPayload));
+    toast.success('Added to cart');
+    
+    // Notify parent component about cart update
+      if (onCartUpdate) {
+        console.log("CALLING onCartUpdate()");
+        onCartUpdate(); // 🚀 SHOULD OPEN SIDEBAR
+      }
   };
+
+
 
   // Build the product URL with color parameter
   const getProductUrl = () => {
@@ -217,15 +198,6 @@ const handleAddToCartClick = (e) => {
     [...new Set(variants.map(v => v.color).filter(Boolean))];
 
   const currentImage = variantImages[currentImageIndex];
-
-  // Format price for display
-  const formatPrice = (priceValue) => {
-    if (!priceValue && priceValue !== 0) return '₹0';
-    if (typeof priceValue === 'string') {
-      return priceValue.includes('₹') ? priceValue : `₹${priceValue}`;
-    }
-    return `₹${priceValue}`;
-  };
 
   return (
     <motion.div
@@ -311,18 +283,17 @@ const handleAddToCartClick = (e) => {
             <div>
               {originalPrice && (
                 <div className="text-sm line-through text-gray-300">
-                  {formatPrice(originalPrice)}
+                  {originalPrice}
                 </div>
               )}
               <div className="text-lg font-bold text-white">
-                {formatPrice(price)}
+                {price}
               </div>
             </div>
 
-            {/* Cart Button - Fixed with proper event handling */}
             <button
               onClick={handleAddToCartClick}
-              className="p-2 bg-white/20 backdrop-blur-md rounded hover:bg-white/30 transition-colors z-20 relative"
+              className="p-2 bg-white/20 backdrop-blur-md rounded hover:bg-white/30 transition-colors z-20"
             >
               <ShoppingBag className="w-4 h-4 text-white" />
             </button>
@@ -333,4 +304,4 @@ const handleAddToCartClick = (e) => {
   );
 };
 
-export default ProductCard; 
+export default ProductCard;
