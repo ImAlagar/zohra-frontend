@@ -36,15 +36,6 @@ const UserStats = ({ stats = {} }) => {
       trend: "up"
     },
     {
-      title: "Wholesalers",
-      value: totalWholesalers,
-      change: pendingWholesalers,
-      icon: Store,
-      color: "purple",
-      description: `${pendingWholesalers} pending approval`,
-      trend: "up"
-    },
-    {
       title: "Customers",
       value: totalCustomers,
       change: 8,

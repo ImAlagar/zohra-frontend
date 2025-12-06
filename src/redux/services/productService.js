@@ -235,11 +235,22 @@ export const productService = apiSlice.injectEndpoints({
       providesTags: ['Product'],
     }),
 
-    getRelatedProducts: builder.query({
-    query: ({ category, excludeProductId }) => 
-      `/products/related?category=${category}&exclude=${excludeProductId}&limit=10`,
-    }),
-
+// productService.js
+getRelatedProducts: builder.query({
+  query: ({ category, excludeProductId }) => ({
+    url: `/products/related`,
+    params: {
+      category,
+      exclude: excludeProductId,
+      limit: 10
+    }
+  }),
+  // Optional: Add transformResponse if needed
+  transformResponse: (response) => {
+    // Handle the response format
+    return response.data || response;
+  }
+}),
     // Variant Management Endpoints
     addProductVariant: builder.mutation({
       query: ({ productId, variantData }) => ({

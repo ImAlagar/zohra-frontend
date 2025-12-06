@@ -4,7 +4,7 @@ import { useDispatch } from 'react-redux';
 import { clearCart } from '../../redux/slices/cartSlice';
 import { useInitiatePaymentMutation, useVerifyPaymentMutation } from '../../redux/services/orderService';
 import { toast } from 'react-hot-toast';
-import { Lock } from 'lucide-react';
+import { Lock, Loader } from 'lucide-react';
 
 const RazorpayButton = ({
   orderData,
@@ -23,22 +23,10 @@ const RazorpayButton = ({
 
   const loadRazorpayScript = () => {
     return new Promise((resolve) => {
-      // Check if script is already loaded
-      if (window.Razorpay) {
-        resolve(true);
-        return;
-      }
-      
       const script = document.createElement('script');
       script.src = 'https://checkout.razorpay.com/v1/checkout.js';
-      script.onload = () => {
-        console.log('Razorpay script loaded successfully');
-        resolve(true);
-      };
-      script.onerror = () => {
-        console.error('Failed to load Razorpay script');
-        resolve(false);
-      };
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);
       document.body.appendChild(script);
     });
   };
@@ -49,13 +37,6 @@ const RazorpayButton = ({
     setIsProcessing(true);
 
     try {
-      // Validate order data
-      if (!orderData || !orderData.orderItems || orderData.orderItems.length === 0) {
-        toast.error('No items in cart');
-        setIsProcessing(false);
-        return;
-      }
-
       // Load Razorpay script
       const isScriptLoaded = await loadRazorpayScript();
       if (!isScriptLoaded) {
@@ -64,72 +45,40 @@ const RazorpayButton = ({
         return;
       }
 
-      // Ensure amount is valid
-      const paymentAmount = Math.max(1, Math.round(amount * 100)); // Convert to paise, minimum 1 rupee
-      
-      console.log('Initiating payment with:', {
-        amount: paymentAmount,
-        orderItems: orderData.orderItems,
-        itemCount: orderData.orderItems.length
-      });
-
       // Initiate payment with backend
-      const result = await initiatePayment({ 
-        orderData: {
-          ...orderData,
-          orderItems: orderData.orderItems // Already transformed in parent
-        }
-      }).unwrap();
+      const result = await initiatePayment({ orderData }).unwrap();
       
-      if (!result.success) {
-        throw new Error(result.message || 'Failed to initiate payment');
+      if (!result.success || !result.data?.razorpayOrder) {
+        throw new Error('Failed to initiate payment');
       }
 
       const { razorpayOrder, tempOrderData } = result.data;
-      
-      // Ensure Razorpay key is available
-      const razorpayKey = import.meta.env.VITE_APP_RAZORPAY_KEY_ID || process.env.REACT_APP_RAZORPAY_KEY_ID;
-      if (!razorpayKey) {
-        toast.error('Payment gateway configuration error');
-        setIsProcessing(false);
-        return;
-      }
-
       const options = {
-        key: razorpayKey,
+        key: import.meta.env.VITE_APP_RAZORPAY_KEY_ID,
         amount: razorpayOrder.amount,
-        currency: razorpayOrder.currency || 'INR',
+        currency: razorpayOrder.currency,
         name: 'zohra',
         description: 'Order Payment',
         order_id: razorpayOrder.id,
         handler: async (response) => {
-          try {
-            console.log('Payment successful, verifying:', response);
-            
-            // Verify payment with backend
-            const verifyResult = await verifyPayment({
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-              orderData: tempOrderData
-            }).unwrap();
+          // Verify payment with backend
+          const verifyResult = await verifyPayment({
+            razorpay_order_id: response.razorpay_order_id,
+            razorpay_payment_id: response.razorpay_payment_id,
+            razorpay_signature: response.razorpay_signature,
+            orderData: tempOrderData
+          }).unwrap();
 
-            if (verifyResult.success) {
-              // Clear cart and show success
-              dispatch(clearCart());
-              setOrderNumber(verifyResult.data.orderNumber);
-              setOrderSuccess(true);
-              toast.success('Payment successful! Order confirmed.');
-              navigate('/checkout/success');
-            } else {
-              toast.error(verifyResult.message || 'Payment verification failed');
-            }
-          } catch (verifyError) {
-            console.error('Verification error:', verifyError);
-            toast.error('Payment verification error. Please contact support.');
-          } finally {
-            setIsProcessing(false);
+          if (verifyResult.success) {
+            // Clear cart and show success
+            dispatch(clearCart());
+            setOrderNumber(verifyResult.data.orderNumber);
+            setOrderSuccess(true);
+            toast.success('Payment successful! Order confirmed.');
+          } else {
+            toast.error('Payment verification failed');
           }
+          setIsProcessing(false);
         },
         prefill: {
           name: orderData.name,
@@ -137,8 +86,7 @@ const RazorpayButton = ({
           contact: orderData.phone
         },
         notes: {
-          address: orderData.address,
-          orderData: JSON.stringify(tempOrderData)
+          address: orderData.address
         },
         theme: {
           color: '#3B82F6'
@@ -147,35 +95,16 @@ const RazorpayButton = ({
           ondismiss: () => {
             setIsProcessing(false);
             toast.info('Payment cancelled');
-          },
-          escape: false, // Prevent closing with ESC key
-          animation: true
+          }
         }
       };
 
-      console.log('Opening Razorpay checkout with options:', options);
-      
       const razorpay = new window.Razorpay(options);
       razorpay.open();
       
-      // Handle errors
-      razorpay.on('payment.failed', (response) => {
-        console.error('Payment failed:', response.error);
-        toast.error(`Payment failed: ${response.error.description || 'Unknown error'}`);
-        setIsProcessing(false);
-      });
-      
     } catch (error) {
-      console.error('Payment initiation error:', error);
-      
-      let errorMessage = 'Payment failed. Please try again.';
-      if (error.data?.message) {
-        errorMessage = error.data.message;
-      } else if (error.message) {
-        errorMessage = error.message;
-      }
-      
-      toast.error(errorMessage);
+      console.error('Payment error:', error);
+      toast.error(error.data?.message || 'Payment failed. Please try again.');
       setIsProcessing(false);
     }
   };
@@ -195,7 +124,7 @@ const RazorpayButton = ({
       ) : (
         <>
           <Lock className="w-5 h-5 mr-3" />
-          Pay Now • ₹{amount.toFixed(2)}
+          Pay Now • ${amount.toFixed(2)}
         </>
       )}
     </button>

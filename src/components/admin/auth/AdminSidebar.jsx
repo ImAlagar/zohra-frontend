@@ -40,7 +40,6 @@ const AdminSidebar = ({ isOpen, setIsOpen }) => {
     { name: "Dashboard", icon: <Home size={20} />, path: "/dashboard" },
     { name: "Slider", icon: <Sliders size={20} />, path: "/dashboard/sliders" },
     { name: "Products", icon: <Package size={20} />, path: "/dashboard/products" },
-    { name: "Quantity Pricing", icon: <FiTrendingUp size={20} />, path: "/dashboard/quantity-pricing" },
     { name: "Categories", icon: <FolderPlus size={20} />, path: "/dashboard/categories" },
     { name: "SubCategories", icon: <FolderPlus size={20} />, path: "/dashboard/subcategories" },
     { name: "Orders", icon: <ShoppingBag size={20} />, path: "/dashboard/orders" },

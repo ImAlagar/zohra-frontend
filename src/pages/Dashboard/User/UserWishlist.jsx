@@ -1,18 +1,16 @@
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '../../../context/ThemeContext';
 import { useWishlist } from '../../../hooks/useWishlist';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import ProductCard from '../../../components/ProductCard/ProductCard';
 import { Heart, Trash2, ShoppingBag } from "lucide-react";
 import CartSidebar from '../../../components/layout/CartSidebar';
 import { useSelector } from 'react-redux';
-import placeholderimage from "../../../assets/images/placeholder.jpg"
-
+import placeholderimage from "../../../assets/images/placeholder.jpg";
 
 const UserWishlist = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
-  const user = useSelector((state) => state.auth.user);
   const { 
     wishlistItems, 
     clearAllWishlist, 
@@ -22,7 +20,6 @@ const UserWishlist = () => {
 
   const [showCartSidebar, setShowCartSidebar] = useState(false);
 
-
   // Dynamic styles based on theme
   const isDark = theme === "dark";
   const bgColor = isDark ? "bg-black" : "bg-white";
@@ -31,80 +28,149 @@ const UserWishlist = () => {
 
   // Cart update handler
   const handleCartUpdate = () => {
+    console.log('Cart update triggered from UserWishlist');
     setShowCartSidebar(true);
   };
 
-  // Remove from wishlist
-  const handleRemoveFromWishlist = (productId) => {
-    removeItemFromWishlist(productId);
+  // Enhanced transformation function
+  const transformWishlistItem = (wishlistItem) => {
+    if (!wishlistItem?.product) {
+      console.warn('Invalid wishlist item:', wishlistItem);
+      return null;
+    }
+
+    const product = wishlistItem.product;
+    const variant = wishlistItem.variant;
+    const productId = product._id || product.id;
+
+    // Get all available images for the product
+    const getProductImages = () => {
+      const allImages = [];
+      
+      // Add variant image if available
+      if (variant?.image) {
+        allImages.push(variant.image);
+      }
+      
+      // Add product images from images array
+      if (product.images && Array.isArray(product.images)) {
+        product.images.forEach((img) => {
+          if (typeof img === 'string') {
+            allImages.push(img);
+          } else if (img?.imageUrl) {
+            allImages.push(img.imageUrl);
+          } else if (img?.url) {
+            allImages.push(img.url);
+          }
+        });
+      }
+      
+      // Add main product image if available
+      if (product.image && !allImages.includes(product.image)) {
+        allImages.push(product.image);
+      }
+      
+      // Remove duplicates by URL
+      const uniqueImages = [...new Set(allImages)];
+      
+      // If no images found, use placeholder
+      if (uniqueImages.length === 0) {
+        uniqueImages.push(placeholderimage);
+      }
+      
+      return uniqueImages;
+    };
+
+    const productImages = getProductImages();
+
+    // Determine the correct price
+    const getCorrectPrice = () => {
+      const price = variant?.price || 
+                    product?.offerPrice || 
+                    product?.normalPrice || 
+                    product?.price || 
+                    0;
+      return price;
+    };
+
+    const correctPrice = getCorrectPrice();
+
+    // Build variants array for ProductCard
+    const buildVariants = () => {
+      if (variant) {
+        const variantData = {
+          _id: variant._id || `${productId}-${variant.color || 'default'}`,
+          color: variant.color || 'Default',
+          size: variant.size || 'N/A',
+          price: correctPrice,
+          stock: variant.stock || product.stock || 0,
+          variantImages: productImages.map(image => ({ imageUrl: image })),
+          sku: variant.sku || '',
+          image: variant.image || productImages[0]
+        };
+        return [variantData];
+      }
+      
+      // If no variant, create a default one
+      const defaultVariant = {
+        _id: productId,
+        color: product.color || 'Default',
+        size: 'N/A',
+        price: correctPrice,
+        stock: product.stock || 0,
+        variantImages: productImages.map(image => ({ imageUrl: image })),
+        sku: product.sku || '',
+        image: productImages[0]
+      };
+      return [defaultVariant];
+    };
+
+    const variants = buildVariants();
+    
+    // Determine if product is new
+    const isNew = product.createdAt ? 
+      (Date.now() - new Date(product.createdAt).getTime()) < (30 * 24 * 60 * 60 * 1000) : false;
+    
+    // Calculate discount percentage if applicable
+    const calculateDiscount = () => {
+      if (product.normalPrice && product.offerPrice && product.offerPrice < product.normalPrice) {
+        const discount = ((product.normalPrice - product.offerPrice) / product.normalPrice * 100).toFixed(0);
+        return `${discount}% OFF`;
+      }
+      return null;
+    };
+
+    const discountLabel = calculateDiscount();
+
+    return {
+      id: productId,
+      _id: productId,
+      name: product.name || 'Product Name',
+      title: product.name || 'Product Name',
+      category: product.category || 'Uncategorized',
+      price: correctPrice, // Use number, not string
+      originalPrice: product.normalPrice && product.offerPrice && product.offerPrice < product.normalPrice 
+        ? product.normalPrice 
+        : null,
+      discount: discountLabel,
+      image: productImages[0] || placeholderimage,
+      variants: variants,
+      colors: [...new Set(variants.map(v => v.color).filter(Boolean))],
+      inStock: variants.some(v => v.stock > 0),
+      normalPrice: product.normalPrice || 0,
+      offerPrice: product.offerPrice || 0,
+      isNew: isNew,
+      color: variant?.color || product.color || '',
+      baseProductId: product.baseProductId || productId,
+      description: product.description || '',
+      stock: product.stock || 0
+    };
   };
-
-  // Transform wishlist items for ProductCard with better debugging
-const transformWishlistItem = (wishlistItem, index) => {
-  
-  if (!wishlistItem?.product) {
-    console.warn('Invalid wishlist item:', wishlistItem);
-    return null;
-  }
-
-  const product = wishlistItem.product;
-  
-  // Get color from variant or product
-  const color = wishlistItem.variant?.color || product.color || '';
-
-  // Clean the ID - remove the color suffix if it exists
-  const rawId = product.baseProductId || product._id || product.id;
-  let cleanId = rawId;
-  
-  // Remove color from ID if it's appended
-  if (color && rawId.endsWith(`-${color}`)) {
-    cleanId = rawId.replace(`-${color}`, '');
-  } else if (color && rawId.endsWith(`-${color.toLowerCase()}`)) {
-    cleanId = rawId.replace(`-${color.toLowerCase()}`, '');
-  } else if (color && rawId.endsWith(`-${color.toUpperCase()}`)) {
-    cleanId = rawId.replace(`-${color.toUpperCase()}`, '');
-  }
-
-
-  const transformedProduct = {
-    id: cleanId, // Use the cleaned ID
-    _id: cleanId, // Use the cleaned ID
-    name: product.name || 'Unknown Product',
-    title: product.name || 'Unknown Product',
-    category: product.category || 'Uncategorized',
-    price: `₹${product.normalPrice || 0}`,
-    originalPrice: product.offerPrice && product.normalPrice && product.offerPrice < product.normalPrice 
-      ? `₹${product.normalPrice}` 
-      : null,
-    priceLabel: product.offerPrice && product.normalPrice && product.offerPrice < product.normalPrice 
-      ? "Offer" 
-      : "",
-    image: product.images?.[0] || placeholderimage,
-    variants: wishlistItem.variant ? [wishlistItem.variant] : [],
-    inStock: wishlistItem.variant?.stock > 0 || false,
-    normalPrice: product.normalPrice || 0,
-    offerPrice: product.offerPrice || 0,
-    wholesalePrice: product.wholesalePrice || 0,
-    isWholesaleUser: user?.role === 'WHOLESALER',
-    avgRating: product.avgRating || 0,
-    totalRatings: product.totalRatings || 0,
-    isFeatured: product.featured || false,
-    isNewArrival: product.isNewArrival || false,
-    isBestSeller: product.isBestSeller || false,
-    // Add color property for correct URL generation
-    color: color,
-    // Use the cleaned base product ID
-    baseProductId: cleanId
-  };
-
-  return transformedProduct;
-};
 
   // Filter out invalid products
   const transformedProducts = wishlistItems
     .map(transformWishlistItem)
     .filter(product => product !== null && (product.id || product._id));
-
 
   return (
     <section className={`py-12 transition-colors duration-500 ${bgColor} min-h-screen`}>
@@ -134,9 +200,9 @@ const transformWishlistItem = (wishlistItem, index) => {
 
       {/* Product Grid */}
       {transformedProducts.length > 0 ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-col-4 gap-8 px-6 md:px-16">
-          {transformedProducts.map((product) => (
-            <div key={product.id || product._id} className="relative">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 px-6 md:px-16">
+          {transformedProducts.map((product, index) => (
+            <div key={product.id || product._id || index} className="relative group">
               <ProductCard 
                 product={product} 
                 onCartUpdate={handleCartUpdate}
@@ -168,7 +234,7 @@ const transformWishlistItem = (wishlistItem, index) => {
         </div>
       )}
 
-      {/* Cart Sidebar */}
+      {/* Cart Sidebar - FIXED: onClose should set to false */}
       <CartSidebar
         isOpen={showCartSidebar} 
         onClose={() => setShowCartSidebar(false)} 
@@ -177,4 +243,4 @@ const transformWishlistItem = (wishlistItem, index) => {
   );
 }
 
-export default UserWishlist
+export default UserWishlist;

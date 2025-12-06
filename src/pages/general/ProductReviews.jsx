@@ -425,18 +425,7 @@ const ProductReviews = ({ productId }) => {
                         <span className={`text-sm ${currentTheme.text.muted}`}>
                           {formatDate(review.createdAt)}
                         </span>
-                        {review.isApproved === false && (
-                          <span className="inline-flex items-center px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded">
-                            <Clock className="w-3 h-3 mr-1" />
-                            Pending Approval
-                          </span>
-                        )}
-                        {review.isApproved && (
-                          <span className="inline-flex items-center px-2 py-1 text-xs bg-green-100 text-green-800 rounded">
-                            <CheckCircle className="w-3 h-3 mr-1" />
-                            Verified
-                          </span>
-                        )}
+
                       </div>
                     </div>
                   </div>

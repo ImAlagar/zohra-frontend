@@ -106,9 +106,13 @@ const CategoryCards = () => {
     }
   };
 
+    const getCategorySlug = (categoryName) => {
+    // Convert to lowercase and replace spaces with hyphens
+    return categoryName.toLowerCase().replace(/\s+/g, '-');
+  };
   // Handle category click
   const handleCategoryClick = (category) => {
-    navigate(`/shop?category=${category.id}`);
+    navigate(`/shop/${getCategorySlug(category.name)}`);
   };
 
   // Handle view all click

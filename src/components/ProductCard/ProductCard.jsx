@@ -14,7 +14,6 @@ const ProductCard = ({
 }) => {
   const dispatch = useDispatch();
   const wishlistItems = useSelector((state) => state.wishlist.items);
-  const user = useSelector((state) => state.auth.user);
 
   const {
     _id,
@@ -118,11 +117,13 @@ const ProductCard = ({
     }
   };
 
-  // Handle add to cart click
-// In ProductCard.jsx - Update the cart payload creation
+  // Handle add to cart click - FIXED VERSION
 const handleAddToCartClick = (e) => {
   e.preventDefault();
   e.stopPropagation();
+
+  console.log('Add to cart clicked for product:', productId);
+  console.log('Product data:', product);
 
   // Find the variant for selected color
   let variant;
@@ -136,6 +137,7 @@ const handleAddToCartClick = (e) => {
   }
 
   if (!variant) {
+    console.error('No variant found for product:', productId);
     toast.error('Please select options on product page');
     return;
   }
@@ -145,52 +147,50 @@ const handleAddToCartClick = (e) => {
     return;
   }
 
-  // FIXED: Ensure productId and variant._id are properly used
-  const productIdToUse = productId || _id || id;
-  
-  // Validate IDs exist
-  if (!productIdToUse) {
-    toast.error('Product information is incomplete');
-    return;
-  }
-
-  if (!variant._id) {
-    toast.error('Variant information is incomplete');
-    return;
-  }
+  // Ensure price is a number
+  const productPrice = typeof price === 'string' ? parseFloat(price.replace('₹', '')) : price;
+  const productOriginalPrice = originalPrice ? 
+    (typeof originalPrice === 'string' ? parseFloat(originalPrice.replace('₹', '')) : originalPrice) : 
+    null;
 
   const cartPayload = {
     product: {
-      _id: productIdToUse, // Use the validated product ID
+      _id: productId,
       name: name,
       description: product.description || '',
       category: product.category || 'Uncategorized',
       images: variantImages,
       image: image || variantImages[0] || '',
-      normalPrice: originalPrice?.replace('₹', '') || 0,
-      offerPrice: price?.replace('₹', '') || null
+      normalPrice: productOriginalPrice || 0,
+      offerPrice: productPrice || null
     },
     variant: {
-      _id: variant._id, // Ensure variant._id exists
+      _id: variant._id || productId,
       color: variant.color || localSelectedColor,
       size: variant.size || 'N/A',
-      price: variant.price || parseFloat(price?.replace('₹', '')) || 0,
-      stock: variant.stock || 0,
+      price: variant.price || productPrice || 0,
+      stock: variant.stock || product.stock || 0,
       sku: variant.sku || '',
       image: variant.variantImages?.[0]?.imageUrl || image || ''
     },
-    quantity: 1,
-    // Add a computed ID to help with debugging
-    id: `${productIdToUse}_${variant._id}_${Date.now()}`
+    quantity: 1
   };
 
-  dispatch(addToCart(cartPayload));
+  console.log('Cart payload to dispatch:', cartPayload);
+  
+  // Dispatch and check response
+  const result = dispatch(addToCart(cartPayload));
+  console.log('Dispatch result:', result);
+  
   toast.success('Added to cart');
   
+  // Notify parent component about cart update
   if (onCartUpdate) {
+    console.log('Calling onCartUpdate callback');
     onCartUpdate();
   }
 };
+
   // Handle color selection
   const handleColorSelect = (color, e) => {
     e.preventDefault();
@@ -217,6 +217,15 @@ const handleAddToCartClick = (e) => {
     [...new Set(variants.map(v => v.color).filter(Boolean))];
 
   const currentImage = variantImages[currentImageIndex];
+
+  // Format price for display
+  const formatPrice = (priceValue) => {
+    if (!priceValue && priceValue !== 0) return '₹0';
+    if (typeof priceValue === 'string') {
+      return priceValue.includes('₹') ? priceValue : `₹${priceValue}`;
+    }
+    return `₹${priceValue}`;
+  };
 
   return (
     <motion.div
@@ -302,17 +311,18 @@ const handleAddToCartClick = (e) => {
             <div>
               {originalPrice && (
                 <div className="text-sm line-through text-gray-300">
-                  {originalPrice}
+                  {formatPrice(originalPrice)}
                 </div>
               )}
               <div className="text-lg font-bold text-white">
-                {price}
+                {formatPrice(price)}
               </div>
             </div>
 
+            {/* Cart Button - Fixed with proper event handling */}
             <button
               onClick={handleAddToCartClick}
-              className="p-2 bg-white/20 backdrop-blur-md rounded hover:bg-white/30 transition-colors z-20"
+              className="p-2 bg-white/20 backdrop-blur-md rounded hover:bg-white/30 transition-colors z-20 relative"
             >
               <ShoppingBag className="w-4 h-4 text-white" />
             </button>
@@ -323,4 +333,4 @@ const handleAddToCartClick = (e) => {
   );
 };
 
-export default ProductCard;
+export default ProductCard; 

@@ -625,18 +625,6 @@ const ReviewsPage = () => {
                                 - {review.title}
                               </span>
                             )}
-                            {review.isVerifiedPurchase && (
-                              <span className="inline-flex items-center px-2 py-1 text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded">
-                                <CheckCircle className="w-3 h-3 mr-1" />
-                                Verified Purchase
-                              </span>
-                            )}
-                            {review.isApproved === false && (
-                              <span className="inline-flex items-center px-2 py-1 text-xs bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300 rounded">
-                                <Clock className="w-3 h-3 mr-1" />
-                                Pending Approval
-                              </span>
-                            )}
                           </div>
                         </div>
                       </div>

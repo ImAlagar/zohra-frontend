@@ -400,20 +400,7 @@ const AdminUsers = () => {
               >
                 <FiShield className="w-4 h-4" />
               </button>
-              
-              <button
-                onClick={() => openRoleChangeModal(record, 'WHOLESALER')}
-                className={`p-2 rounded-lg transition-colors ${
-                  theme === 'dark'
-                    ? 'text-purple-400 hover:bg-purple-900'
-                    : 'text-purple-600 hover:bg-purple-50'
-                }`}
-                title="Make Wholesaler"
-                disabled={isRoleLoading}
-                data-action-button="true"
-              >
-                <FiShoppingBag className="w-4 h-4" />
-              </button>
+
             </>
           )}
           
@@ -649,7 +636,7 @@ const AdminUsers = () => {
             <div className="flex flex-col sm:flex-row gap-4">
               {/* Role Filter */}
               <div className="flex flex-wrap gap-2">
-                {['ALL', 'CUSTOMER', 'WHOLESALER', 'ADMIN'].map((role) => (
+                {['ALL', 'CUSTOMER', 'ADMIN'].map((role) => (
                   <button
                     key={role}
                     onClick={() => handleRoleFilterChange(role)}

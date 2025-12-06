@@ -6,9 +6,9 @@ import {
 } from "lucide-react";
 
 export const CONTACT_DATA = [
-  { id: 1, icon: Mail, title: "Email", content: "contact@zohra.com", animation: "pulse" },
-  { id: 2, icon: Phone, title: "Customer Care", content: "+91 88833 85888", animation: "heartbeat" },
-  { id: 3, icon: MapPin, title: "Location", content: "8/2514 Thiyagi Kumaran St, Pandian Nagar, Tiruppur, Tamilnadu - 641602", animation: "shimmer" },
+  { id: 1, icon: Mail, title: "Email", content: "zohraclothing25@gmail.com", animation: "pulse" },
+  { id: 2, icon: Phone, title: "Customer Care", content: "+91 99403 34421", animation: "heartbeat" },
+  { id: 3, icon: MapPin, title: "Location", content: "Andiappan street, Old washermenpet-21", animation: "shimmer" },
   { id: 4, icon: Clock, title: "Business Hours", content: "Mon–Sun: 9AM – 8PM", animation: "rotateSlow" }
 ];
 
@@ -17,7 +17,7 @@ export const SOCIAL_MEDIA = [
     id: 1,
     icon: Instagram,
     name: "Instagram",
-    url: "https://www.instagram.com/zohra/",
+    url: "https://www.instagram.com/zohra_womens?igsh=azZ1Nm5paXV5OXI5&utm_source=qr",
     color: "instagram",
     animation: "glow"
   },
@@ -25,7 +25,7 @@ export const SOCIAL_MEDIA = [
     id: 2,
     icon: Facebook,
     name: "Facebook",
-    url: "https://www.facebook.com/share/19yyr4QjpU/?mibextid=wwXIfr",
+    url: "https://www.facebook.com/profile.php?id=61584568058210&mibextid=wwXIfr&rdid=qGlSAq3VD7FbkKlY&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2F19uG7bh3J8%2F%3Fmibextid%3DwwXIfr#",
     color: "facebook",
     animation: "float"
   },

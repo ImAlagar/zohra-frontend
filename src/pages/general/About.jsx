@@ -36,6 +36,7 @@ import {
 } from 'lucide-react'
 
 import video from "../../assets/videos/about-video.mp4"
+import { Link } from 'react-router-dom'
 
 const About = () => {
   const { theme, toggleTheme } = useTheme()
@@ -487,7 +488,7 @@ const About = () => {
                     animation="shimmer"
                     size={20}
                   />
-                  Explore Collections
+                   <Link to={'/shop'}>Explore Collections</Link>
                   <ChevronRight size={20} />
                 </motion.button>
               </div>
@@ -647,7 +648,7 @@ const About = () => {
                     animation="pulse"
                     size={20}
                   />
-                  Shop Now
+                  <Link to={'/shop'}>Shop Now</Link>
                   <AnimatedIcon 
                     icon={ShoppingBag}
                     animation="shimmer"

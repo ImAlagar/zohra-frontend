@@ -179,56 +179,90 @@ const ProductDetailsPage = () => {
     }
   };
 
-  // Add to cart handler
-  const handleAddToCart = () => {
-    if (!selectedColor && availableColors.length > 0) {
-      toast.error('Please select color');
-      return;
-    }
+// Add to cart handler - FIXED VERSION
+const handleAddToCart = () => {
+  if (!selectedColor && availableColors.length > 0) {
+    toast.error('Please select color');
+    return;
+  }
 
-    if (!selectedSize && availableSizes.length > 0) {
-      toast.error('Please select size');
-      return;
-    }
+  if (!selectedSize && availableSizes.length > 0) {
+    toast.error('Please select size');
+    return;
+  }
 
-    const variant = getSelectedVariant();
-    if (!variant) {
-      toast.error('Please select valid options');
-      return;
-    }
+  const variant = getSelectedVariant();
+  if (!variant) {
+    toast.error('Please select valid options');
+    return;
+  }
 
-    if (variant.stock < quantity) {
-      toast.error(`Only ${variant.stock} items available`);
-      return;
-    }
+  if (variant.stock < quantity) {
+    toast.error(`Only ${variant.stock} items available`);
+    return;
+  }
 
-    const cartPayload = {
-      product: {
-        _id: product._id,
-        name: productName,
-        description: product.description || '',
-        category: productCategory,
-        images: product.images || [],
-        image: product.image || (product.images && product.images[0]) || '',
-        normalPrice: product.normalPrice || 0,
-        offerPrice: product.offerPrice || null
-      },
-      variant: {
-        _id: variant._id,
-        color: selectedColor,
-        size: selectedSize,
-        price: variant.price || product.offerPrice || product.normalPrice || 0,
-        stock: variant.stock || 0,
-        sku: variant.sku || '',
-        image: variant.variantImages?.[0]?.imageUrl || product.image || ''
-      },
-      quantity
-    };
+  // 🔥 CRITICAL FIX: Debug what IDs we actually have
+  console.log('🛒 Debug IDs before adding to cart:', {
+    product: product,
+    productId: product._id,
+    productIdType: typeof product._id,
+    variant: variant,
+    variantId: variant._id,
+    variantIdType: typeof variant._id,
+    allProductKeys: Object.keys(product),
+    allVariantKeys: Object.keys(variant)
+  });
 
-    dispatch(addToCart(cartPayload));
-    toast.success('Added to cart');
-    setShowCartSidebar(true);
+  // 🔥 FIX: Check if we have proper MongoDB IDs
+  // If _id is undefined, try other possible ID fields
+  const productId = product._id || product.id || product.productId;
+  const variantId = variant._id || variant.id || variant.variantId;
+
+  if (!productId) {
+    console.error('❌ No product ID found!', product);
+    toast.error('Product information incomplete');
+    return;
+  }
+
+  if (!variantId) {
+    console.error('❌ No variant ID found!', variant);
+    toast.error('Variant information incomplete');
+    return;
+  }
+
+  const cartPayload = {
+    product: {
+      _id: productId, // 🔥 Use the validated ID
+      name: productName,
+      description: product.description || '',
+      category: productCategory,
+      images: product.images || [],
+      image: product.image || (product.images && product.images[0]) || '',
+      normalPrice: product.normalPrice || 0,
+      offerPrice: product.offerPrice || null,
+      // Add price for compatibility
+      price: variant.price || product.offerPrice || product.normalPrice || 0
+    },
+    variant: {
+      _id: variantId, // 🔥 Use the validated ID
+      color: selectedColor,
+      size: selectedSize,
+      price: variant.price || product.offerPrice || product.normalPrice || 0,
+      stock: variant.stock || 0,
+      sku: variant.sku || '',
+      image: variant.variantImages?.[0]?.imageUrl || product.image || '',
+      variantImages: variant.variantImages || []
+    },
+    quantity
   };
+
+  console.log('✅ Cart payload with validated IDs:', cartPayload);
+  
+  dispatch(addToCart(cartPayload));
+  toast.success('Added to cart');
+  setShowCartSidebar(true);
+};
 
   // Buy now handler
   const handleBuyNow = () => {
@@ -345,6 +379,8 @@ const ProductDetailsPage = () => {
             isInStock={isInStock}
             setShowCartSidebar={setShowCartSidebar}
             colorFromUrl={colorFromUrl}
+              setSelectedImageIndex={setSelectedImageIndex} // Add this line
+
           />
         </div>
 

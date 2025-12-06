@@ -72,22 +72,22 @@ export default function Contact() {
     {
       icon: Phone,
       title: "Call Us",
-      value: "+91 98765 43210",
-      action: () => window.location.href = "tel:+919876543210",
-      subtitle: "Mon-Sat, 10AM-7PM"
+      value: "+91 99403 34421",
+      action: () => window.location.href = "tel:+9199403 34421",
+      subtitle: "Mon-Sat, 10AM-8PM"
     },
     {
       icon: FaWhatsapp,
       title: "WhatsApp",
       value: "Start Chat",
-      action: () => window.open(`https://wa.me/919876543210?text=${encodeURIComponent("Hello Zohra! I need help with nightwear selection.")}`, "_blank"),
+      action: () => window.open(`https://wa.me/9199403 34421?text=${encodeURIComponent("Hello Zohra! I need help with nightwear selection.")}`, "_blank"),
       subtitle: "Instant response"
     },
     {
       icon: Mail,
       title: "Email",
-      value: "hello@zohra.com",
-      action: () => window.location.href = "mailto:hello@zohra.com",
+      value: "zohraclothing25@gmail.com",
+      action: () => window.location.href = "mailto:zohraclothing25@gmail.com",
       subtitle: "Within 12 hours"
     },
   ];
@@ -210,13 +210,13 @@ export default function Contact() {
                 </h3>
               </div>
               <p className={`${textSecondary} mb-4`}>
-                Fashion District, Mumbai<br />
-                Maharashtra, India
+                Andiappan street<br />
+                Old washermenpet-21
               </p>
               <motion.button
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                onClick={() => window.open("https://maps.google.com/?q=Zohra+Fashion+District+Mumbai", "_blank")}
+                onClick={() => window.open("https://maps.google.com/?q=Andiappan street,Old washermenpet-21", "_blank")}
                 className={`w-full ${buttonGradient} text-white py-2 rounded-lg font-medium flex items-center justify-center gap-2`}
               >
                 <FaMapMarkerAlt />

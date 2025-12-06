@@ -82,7 +82,7 @@ export const useSearch = () => {
     const productId = product.id;
     
     // Navigate to collections route with the product ID
-    navigate(`/collections/${productId}`);
+    navigate(`/product/${productId}`);
     setSearchOpen(false);
     setSearchQuery("");
   };
