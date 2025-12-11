@@ -1,14 +1,19 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux'; // Add useDispatch
 import { useTheme } from '../../context/ThemeContext';
 import { useGetRelatedProductsQuery } from '../../redux/services/productService';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import CartSidebar from '../../components/layout/CartSidebar';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { toast } from 'react-toastify'; // Import toast for notifications
+
+// Import your cart actions
+import { addToCart } from '../../redux/slices/cartSlice'; // Adjust the import path as needed
 
 const RelatedProducts = ({ currentProduct, category }) => {
   const { theme } = useTheme();
   const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch(); // Initialize dispatch
   const scrollContainerRef = useRef(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
@@ -303,6 +308,52 @@ const RelatedProducts = ({ currentProduct, category }) => {
     }, 3000);
   };
 
+  // FIXED: Proper handleAddToCart function
+  const handleAddToCart = (product) => {
+    // Check if product has variants
+    if (!product.variants || product.variants.length === 0) {
+      toast.error("Product variant not available");
+      return;
+    }
+
+    // Get the first variant for this color (or you might want to let user select size)
+    const variantForColor = product.variants.find(v => v.color === product.color);
+    if (!variantForColor) {
+      toast.error("Selected color variant not found");
+      return;
+    }
+
+    // Prepare cart item
+    const cartItem = {
+      id: `${product.id}-${product.color}`, // Unique ID for this color variant
+      product: {
+        _id: product.id,
+        name: product.title,
+        price: parseFloat(product.normalPrice) || 0,
+        offerPrice: parseFloat(product.offerPrice) || null,
+        wholesalePrice: parseFloat(product.wholesalePrice) || null,
+        images: [product.image]
+      },
+      variant: {
+        _id: variantForColor._id,
+        size: variantForColor.size,
+        color: variantForColor.color,
+        price: variantForColor.price,
+        stock: variantForColor.stock,
+        image: product.image
+      },
+      quantity: 1
+    };
+
+    // Dispatch the addToCart action
+    dispatch(addToCart(cartItem));
+    
+    // Show success message
+    
+    // Open cart sidebar after adding
+    setShowCartSidebar(true);
+  };
+
   if (isLoading) {
     return (
       <section className={`py-12 ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
@@ -324,7 +375,7 @@ const RelatedProducts = ({ currentProduct, category }) => {
       </div>
     </section>
   );
-}
+  }
 
   if (error || relatedProducts.length === 0) {
     return null;
@@ -397,11 +448,18 @@ const RelatedProducts = ({ currentProduct, category }) => {
                 key={`${product.id}-${product.color}`} // Use combined key for React
                 className="flex-shrink-0 w-80 transition-transform duration-300 hover:scale-105"
               >
-                <ProductCard
-                  product={product}
-                  onCartUpdate={handleCartUpdate}
-                  selectedColor={product.selectedColor}
-                />
+              <ProductCard
+                key={`${product.id}-${product.color}`} // Unique key
+                product={{
+                  ...product,
+                  // Ensure name field exists for ProductCard
+                  name: product.title || product.displayTitle || product.name,
+                  title: product.displayTitle || product.title || product.name
+                }}
+                onCartUpdate={handleCartUpdate}
+                selectedColor={product.selectedColor}
+                onAddToCart={() => handleAddToCart(product)} // Pass the function
+              />
               </div>
             ))}
           </div>

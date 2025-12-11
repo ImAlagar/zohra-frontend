@@ -10,16 +10,19 @@ import { addToCart } from '../../redux/slices/cartSlice';
 const ProductCard = ({
   product,
   onCartUpdate,
-  selectedColor
+  selectedColor,
+  onAddToCart // Add this prop
 }) => {
   const dispatch = useDispatch();
   const wishlistItems = useSelector((state) => state.wishlist.items);
   const user = useSelector((state) => state.auth.user);
 
+  // Destructure with fallbacks for both name formats
   const {
     _id,
     id,
     name,
+    title, // Add title for RelatedProducts
     price,
     originalPrice,
     discount,
@@ -33,6 +36,9 @@ const ProductCard = ({
   // Use _id for navigation (MongoDB uses _id)
   const productId = _id || id;
 
+  // Use title if available, otherwise name
+  const displayName = title || name || "Unnamed Product";
+
   // Check if product is in wishlist
   const isLiked = wishlistItems.some(item => 
     item.product._id === productId || item.product.id === productId
@@ -42,6 +48,11 @@ const ProductCard = ({
   const getAllVariantImages = () => {
     const allImages = [];
     
+    // Add main image if available
+    if (image) {
+      allImages.push(image);
+    }
+    
     // Collect all variant images
     variants.forEach(variant => {
       if (variant.variantImages && variant.variantImages.length > 0) {
@@ -49,15 +60,15 @@ const ProductCard = ({
           allImages.push(img.imageUrl);
         });
       }
+      
+      // Add variant image if available
+      if (variant.image) {
+        allImages.push(variant.image);
+      }
     });
     
     // Remove duplicate images by URL
-    const uniqueImages = [...new Set(allImages)];
-    
-    // If no variant images, use the main product image
-    if (uniqueImages.length === 0 && image) {
-      uniqueImages.push(image);
-    }
+    const uniqueImages = [...new Set(allImages.filter(Boolean))];
     
     // Fallback placeholder
     if (uniqueImages.length === 0) {
@@ -101,8 +112,8 @@ const ProductCard = ({
     const wishlistItem = {
       product: {
         _id: productId,
-        name: name,
-        image: image || (variantImages && variantImages[0]) || '',
+        name: displayName,
+        image: variantImages[0] || '',
         price: price || 0,
         category: product.category || 'Uncategorized'
       },
@@ -118,11 +129,18 @@ const ProductCard = ({
     }
   };
 
-  // Handle add to cart click
+  // FIXED: Handle add to cart click
   const handleAddToCartClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
 
+    // If parent component provided onAddToCart prop, use it
+    if (onAddToCart) {
+      onAddToCart(product); // Pass product to parent
+      return;
+    }
+
+    // Otherwise use local logic
     // Find the variant for selected color
     let variant;
     if (localSelectedColor && variants.length > 0) {
@@ -144,25 +162,38 @@ const ProductCard = ({
       return;
     }
 
+    // Helper function to extract numeric price
+    const getNumericPrice = (priceValue) => {
+      if (!priceValue) return 0;
+      if (typeof priceValue === 'string') {
+        // Remove currency symbols and commas
+        return parseFloat(priceValue.replace(/[₹,]/g, ''));
+      }
+      if (typeof priceValue === 'number') {
+        return priceValue;
+      }
+      return 0;
+    };
+
     const cartPayload = {
       product: {
         _id: productId,
-        name: name,
+        name: displayName,
         description: product.description || '',
         category: product.category || 'Uncategorized',
         images: variantImages,
-        image: image || variantImages[0] || '',
-        normalPrice: originalPrice?.replace('₹', '') || 0,
-        offerPrice: price?.replace('₹', '') || null
+        image: variantImages[0] || '',
+        normalPrice: getNumericPrice(originalPrice),
+        offerPrice: getNumericPrice(price)
       },
       variant: {
         _id: variant._id,
         color: variant.color || localSelectedColor,
         size: variant.size || 'N/A',
-        price: variant.price || parseFloat(price?.replace('₹', '')) || 0,
+        price: variant.price || getNumericPrice(price) || 0,
         stock: variant.stock || 0,
         sku: variant.sku || '',
-        image: variant.variantImages?.[0]?.imageUrl || image || ''
+        image: variant.variantImages?.[0]?.imageUrl || variantImages[0] || ''
       },
       quantity: 1
     };
@@ -171,12 +202,10 @@ const ProductCard = ({
     toast.success('Added to cart');
     
     // Notify parent component about cart update
-      if (onCartUpdate) {
-        onCartUpdate(); // 🚀 SHOULD OPEN SIDEBAR
-      }
+    if (onCartUpdate) {
+      onCartUpdate();
+    }
   };
-
-
 
   // Build the product URL with color parameter
   const getProductUrl = () => {
@@ -218,7 +247,7 @@ const ProductCard = ({
           <motion.img
             key={currentImageIndex}
             src={currentImage}
-            alt={`${name} - Image ${currentImageIndex + 1}`}
+            alt={`${displayName} - Image ${currentImageIndex + 1}`}
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -268,19 +297,15 @@ const ProductCard = ({
         {/* Product Info Overlay (inside image) */}
         <div className="absolute bottom-0 left-0 w-full p-4 
           bg-gradient-to-t from-black/90 to-transparent text-white z-10">
-
+          
+          {/* FIXED: Use displayName instead of name */}
           <h3 className="text-base font-medium mb-1 line-clamp-1">
-            {name}
-            {localSelectedColor && (
-              <span className="ml-2 text-sm text-gray-300">
-                ({localSelectedColor})
-              </span>
-            )}
+            {displayName}
           </h3>
 
           <div className="flex items-center justify-between">
             <div>
-              {originalPrice && (
+              {originalPrice && originalPrice !== price && (
                 <div className="text-sm line-through text-gray-300">
                   {originalPrice}
                 </div>

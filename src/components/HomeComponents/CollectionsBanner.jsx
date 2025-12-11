@@ -111,13 +111,13 @@ const CollectionsBanner = () => {
           className="mt-8"
         >
           <a 
-            href="http://theludns.in/collections" 
+            href="/shop" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-gray-300 hover:text-white text-sm md:text-base font-medium transition-colors inline-flex items-center gap-2"
           >
             <span className="text-amber-300">→</span>
-            http://theludns.in/collections
+            shop
           </a>
         </motion.div>
 

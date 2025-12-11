@@ -238,11 +238,7 @@ const OrderSuccess = () => {
                         
                         {/* Variant Details */}
                         <div className="flex flex-wrap gap-3 mb-2">
-                          {item.variant?.color && (
-                            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                              Color: {item.variant.color}
-                            </span>
-                          )}
+              
                           
                           {item.variant?.size && (
                             <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">

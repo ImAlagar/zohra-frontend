@@ -26,8 +26,11 @@ import {
   Mail, 
   Shield,
   Sparkles,
-  Star
+  Star,
+  Grid,
+  Tag
 } from 'lucide-react';
+import { useGetAllCategoriesQuery } from '../../../redux/services/categoryService';
 
 const Footer = React.memo(() => {
   const { theme } = useTheme();
@@ -35,6 +38,16 @@ const Footer = React.memo(() => {
   const colors = useThemeColors(theme);
   const currentYear = new Date().getFullYear();
 
+
+    // Fetch categories using the API
+  const { data: categoriesData, isLoading, error } = useGetAllCategoriesQuery({ 
+    page: 1, 
+    limit: 5, // Limit to 5 categories for footer
+    status: 'ACTIVE' // Only show active categories
+  });
+  
+  // Extract categories from the response
+  const categories = categoriesData?.data?.categories || [];
   // ✅ FIXED: Removed problematic useEffect that was causing scroll issues
 
   return (
@@ -78,12 +91,13 @@ const Footer = React.memo(() => {
             borderColor={colors.borderColor}
           />
 
-          {/* Collections Section */}
-          <CollectionsSection 
-            colors={colors} 
-            categories={CATEGORIES} 
-            navigate={navigate} 
-            goldGradient={colors.goldGradient}
+          {/* Categories Section - NEW */}
+          <CategoriesSection 
+            colors={colors}
+            categories={categories}
+            isLoading={isLoading}
+            error={error}
+            navigate={navigate}
           />
 
           {/* Quick Links Section */}
@@ -113,6 +127,58 @@ const Footer = React.memo(() => {
     </footer>
   );
 });
+
+
+// NEW: Categories Section Component
+const CategoriesSection = React.memo(({ colors, categories, isLoading, error, navigate }) => (
+
+
+  
+  <div>
+    <SectionHeader 
+      icon={Grid}
+      title="Shop Categories" 
+      animation="pulse" 
+      colors={colors}
+    />
+    
+    {isLoading ? (
+      <div className="space-y-3">
+        {[...Array(5)].map((_, index) => (
+          <div key={index} className="h-4 bg-gray-300 dark:bg-gray-700 rounded animate-pulse"></div>
+        ))}
+      </div>
+    ) : error ? (
+      <p className="text-sm text-red-500">Failed to load categories</p>
+    ) : categories.length === 0 ? (
+      <p className="text-sm">No categories available</p>
+    ) : (
+      <div className="space-y-4">
+        {categories.map((category) => (
+          <SimpleLink 
+            key={category.id}
+            onClick={() => navigate(`/shop/${category.name.toLowerCase().replace(/\s+/g, '-').replace(/&/g, '-')}`)}
+            icon={Tag}
+            textColor={colors.textColor}
+            accentColor={colors.accentColor}
+          >
+            <div className="flex items-center gap-2">
+              <span>{category.name}</span>
+              {category._count?.products > 0 && (
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${colors.iconBgColor}`}>
+                  {category._count.products}
+                </span>
+              )}
+            </div>
+          </SimpleLink>
+        ))}
+      </div>
+    )}
+  </div>
+));
+
+CategoriesSection.displayName = 'CategoriesSection';
+
 
 // Sub-components
 const BrandSection = React.memo(({ colors, socialMedia, theme, borderColor }) => (
@@ -150,40 +216,7 @@ const BrandSection = React.memo(({ colors, socialMedia, theme, borderColor }) =>
 
 BrandSection.displayName = 'BrandSection';
 
-const CollectionsSection = React.memo(({ colors, categories, navigate, goldGradient }) => (
-  <div>
-    <SectionHeader 
-      icon={ShoppingBag}
-      title="Collections" 
-      animation="float" 
-      colors={colors}
-    />
-    
-    <div className="grid grid-cols-2 gap-2">
-      {categories.map((category, index) => (
-        <button
-          key={index}
-          className={`text-sm font-inter ${colors.textColor} hover:text-amber-600 transition py-2 text-left hover:translate-x-1 duration-300`}
-          onClick={() => {
-            // ✅ FIXED: Prevent default and use proper navigation
-            navigate(`/collection/${category.toLowerCase().replace(/ /g, '-')}`, {
-              replace: false, // Changed from true to false for proper history
-              state: { fromFooter: true }
-            });
-          }}
-        >
-          {category}
-        </button>
-      ))}
-    </div>
 
-    <div className="mt-8">
-      <ExploreButton goldGradient={goldGradient} navigate={navigate} />
-    </div>
-  </div>
-));
-
-CollectionsSection.displayName = 'CollectionsSection';
 
 const QuickLinksSection = React.memo(({ colors, quickLinks, navigate }) => (
   <div>

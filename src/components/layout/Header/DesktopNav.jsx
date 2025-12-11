@@ -148,12 +148,7 @@ const DesktopNav = ({
       description: 'Bust: 42"+',
       range: 'Size 24+'
     },
-    { 
-      label: 'Size Guide', 
-      path: '/size-guide', 
-      icon: '📏',
-      special: true
-    },
+
   ];
 
   const mainMenuItems = [

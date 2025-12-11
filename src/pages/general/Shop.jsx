@@ -22,14 +22,17 @@ import { useGetAllProductsQuery } from '../../redux/services/productService';
 import LoadingSpinner from '../../components/Common/LoadingSpinner';
 import ProductCard from '../../components/ProductCard/ProductCard';
 import CartSidebar from '../../components/layout/CartSidebar';
+import { useSelector, useDispatch } from 'react-redux'; // Add useDispatch
+import { addToCart } from '../../redux/slices/cartSlice'; // Import addToCart action
+import { toast } from 'react-hot-toast'; // Add toast for notifications
 
 const Shop = () => {
   const { theme } = useTheme();
   const { category } = useParams(); // Get category from URL
   const location = useLocation(); // Get query parameters
   const navigate = useNavigate(); // For navigation
+  const dispatch = useDispatch(); // Initialize dispatch
   
-  const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
   const [showFilters, setShowFilters] = useState(false);
   const [selectedSizes, setSelectedSizes] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState(category || '');
@@ -40,8 +43,7 @@ const Shop = () => {
   const [productsPerPage] = useState(12);
   const [likedProducts, setLikedProducts] = useState({});
   const [categoryName, setCategoryName] = useState('');
-    const [showCartSidebar, setShowCartSidebar] = useState(false);
-
+  const [showCartSidebar, setShowCartSidebar] = useState(false);
 
   // Theme-based styling
   const themeStyles = {
@@ -337,13 +339,101 @@ const Shop = () => {
     }));
   };
 
+  // FIXED: Proper handleAddToCart function
   const handleAddToCart = (product) => {
-    // Add to cart logic here
+    console.log('Adding to cart from Shop:', product);
+    
+    // Check if product has variants
+    if (!product.variants || product.variants.length === 0) {
+      toast.error("Product variant not available");
+      return;
+    }
+
+    // Get the first variant (or you can let user select)
+    const variant = product.variants[0];
+    if (!variant) {
+      toast.error("Product variant not found");
+      return;
+    }
+
+    // Helper function to extract numeric price
+    const getNumericPrice = (priceValue) => {
+      if (!priceValue && priceValue !== 0) return 0;
+      if (typeof priceValue === 'string') {
+        // Remove currency symbols and commas
+        return parseFloat(priceValue.replace(/[₹,]/g, ''));
+      }
+      if (typeof priceValue === 'number') {
+        return priceValue;
+      }
+      return 0;
+    };
+
+    // Get all images for the product
+    const getAllImages = () => {
+      const images = [];
+      
+      // Add variant images
+      if (variant.variantImages && variant.variantImages.length > 0) {
+        variant.variantImages.forEach(img => {
+          if (img.imageUrl) images.push(img.imageUrl);
+        });
+      }
+      
+      // Add main product image
+      if (product.image) {
+        images.push(product.image);
+      }
+      
+      // Fallback
+      if (images.length === 0) {
+        images.push('https://via.placeholder.com/300x400');
+      }
+      
+      return images;
+    };
+
+    const productImages = getAllImages();
+
+    // Prepare cart item
+    const cartItem = {
+      id: `${product.id}-${variant.color || 'default'}`, // Unique ID
+      product: {
+        _id: product.id,
+        name: product.name,
+        price: getNumericPrice(product.normalPriceValue) || 0,
+        offerPrice: getNumericPrice(product.offerPriceValue) || null,
+        images: productImages,
+        image: productImages[0] || product.image,
+        category: product.category || 'Uncategorized',
+        description: ''
+      },
+      variant: {
+        _id: variant._id || `${product.id}-${variant.color || 'default'}`,
+        size: variant.size || 'N/A',
+        color: variant.color || 'Default',
+        price: variant.price || getNumericPrice(product.normalPriceValue) || 0,
+        stock: variant.stock || 0,
+        sku: variant.sku || '',
+        image: variant.variantImages?.[0]?.imageUrl || productImages[0] || product.image
+      },
+      quantity: 1
+    };
+
+    // Dispatch the addToCart action
+    dispatch(addToCart(cartItem));
+    
+    // Show success message
+    toast.success(`${product.name} added to cart!`);
     
     // Open cart sidebar after adding
     setShowCartSidebar(true);
   };
 
+  // Cart update handler for ProductCard
+  const handleCartUpdate = () => {
+    setShowCartSidebar(true);
+  };
 
   const clearAllFilters = () => {
     setSelectedSizes([]);
@@ -455,7 +545,7 @@ const Shop = () => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Filters Sidebar */}
           <AnimatePresence>
@@ -464,7 +554,7 @@ const Shop = () => {
                 initial={{ x: -300, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 exit={{ x: -300, opacity: 0 }}
-                className={`lg:w-1/4 ${currentTheme.bg.card} ${currentTheme.shadow} rounded-xl p-6 h-fit lg:sticky lg:top-8 ${currentTheme.border}`}
+                className={`lg:w-1/6 ${currentTheme.bg.card} ${currentTheme.shadow} rounded-xl p-6 h-fit lg:sticky lg:top-8 ${currentTheme.border}`}
               >
                 <div className="flex justify-between items-center mb-6">
                   <h3 className={`text-lg font-semibold font-instrument ${currentTheme.text.primary}`}>
@@ -477,26 +567,6 @@ const Shop = () => {
                   >
                     <X className="w-5 h-5" />
                   </button>
-                </div>
-
-                {/* Search */}
-                <div className="mb-6">
-                  <label className={`block text-sm font-medium font-instrument mb-2 ${currentTheme.text.secondary}`}>
-                    Search Products
-                  </label>
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-500" />
-                    <input
-                      type="text"
-                      value={searchQuery}
-                      onChange={(e) => {
-                        setSearchQuery(e.target.value);
-                        setCurrentPage(1);
-                      }}
-                      placeholder="Search by name or code..."
-                      className={`w-full pl-10 pr-4 py-2 rounded-lg border ${currentTheme.border} ${currentTheme.bg.primary} ${currentTheme.text.primary} focus:outline-none focus:ring-2 focus:ring-blue-500`}
-                    />
-                  </div>
                 </div>
 
                 {/* Size Filter (COMPULSORY) */}
@@ -675,22 +745,6 @@ const Shop = () => {
                     </select>
                     <ChevronLeft className="absolute right-3 top-1/2 transform -translate-y-1/2 rotate-90 w-4 h-4 pointer-events-none" />
                   </div>
-
-                  {/* View Mode Toggle */}
-                  <div className={`flex rounded-lg p-1 ${theme === 'dark' ? 'bg-gray-700' : 'bg-gray-100'}`}>
-                    <button
-                      onClick={() => setViewMode('grid')}
-                      className={`p-2 rounded ${viewMode === 'grid' ? 'bg-white dark:bg-gray-600 shadow-sm' : ''}`}
-                    >
-                      <Grid className={`w-5 h-5 ${viewMode === 'grid' ? 'text-blue-600' : currentTheme.text.muted}`} />
-                    </button>
-                    <button
-                      onClick={() => setViewMode('list')}
-                      className={`p-2 rounded ${viewMode === 'list' ? 'bg-white dark:bg-gray-600 shadow-sm' : ''}`}
-                    >
-                      <List className={`w-5 h-5 ${viewMode === 'list' ? 'text-blue-600' : currentTheme.text.muted}`} />
-                    </button>
-                  </div>
                 </div>
               </div>
 
@@ -742,138 +796,18 @@ const Shop = () => {
             {/* Products Display */}
             {currentProducts.length > 0 ? (
               <>
-                {/* Grid View */}
-                {viewMode === 'grid' ? (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {currentProducts.map(product => (
-                      <ProductCard
-                        key={product.id}
-                        product={product}
-                        liked={!!likedProducts[product.id]}
-                        onToggleLike={() => toggleLike(product.id)}
-                        onAddToCart={() => handleAddToCart(product)}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  /* List View */
-                  <div className="space-y-4">
-                    {currentProducts.map(product => (
-                      <div
-                        key={product.id}
-                        className={`p-4 rounded-xl ${currentTheme.bg.card} ${currentTheme.shadow} ${currentTheme.border}`}
-                      >
-                        <div className="flex flex-col md:flex-row gap-4">
-                          {/* Image */}
-                          <div className="md:w-1/4">
-                            <img
-                              src={product.image}
-                              alt={product.name}
-                              className="w-full h-48 object-cover rounded-lg"
-                            />
-                          </div>
-                          {/* Details */}
-                          <div className="flex-1">
-                            <div className="flex justify-between items-start">
-                              <div>
-                                <h3 className={`text-lg font-semibold font-instrument ${currentTheme.text.primary} mb-1`}>
-                                  {product.name}
-                                </h3>
-                                <p className={`text-sm ${currentTheme.text.muted} mb-2`}>
-                                  Code: {product.productCode} | Category: {product.category}
-                                </p>
-                                {product.avgRating > 0 && (
-                                  <div className="flex items-center gap-1 mb-2">
-                                    <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                                    <span className="text-sm">{product.avgRating.toFixed(1)}</span>
-                                    <span className={`text-xs ${currentTheme.text.muted}`}>
-                                      ({product.totalRatings} reviews)
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => toggleLike(product.id)}
-                                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                              >
-                                <Heart
-                                  className={`w-5 h-5 ${
-                                    likedProducts[product.id]
-                                      ? 'fill-red-500 text-red-500'
-                                      : currentTheme.text.muted
-                                  }`}
-                                />
-                              </button>
-                            </div>
-                            
-                            <div className="flex flex-wrap gap-2 mb-3">
-                              {product.sizes.slice(0, 5).map(size => (
-                                <span
-                                  key={size}
-                                  className={`px-2 py-1 text-xs rounded ${
-                                    selectedSizes.includes(size)
-                                      ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                                      : 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300'
-                                  }`}
-                                >
-                                  {size}
-                                </span>
-                              ))}
-                              {product.sizes.length > 5 && (
-                                <span className={`px-2 py-1 text-xs rounded ${currentTheme.text.muted}`}>
-                                  +{product.sizes.length - 5} more
-                                </span>
-                              )}
-                            </div>
-
-                            <div className="flex justify-between items-center">
-                              <div>
-                                {product.discount && (
-                                  <span className="inline-block px-2 py-1 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 text-xs rounded mr-2">
-                                    {product.discount}
-                                  </span>
-                                )}
-                                {product.isNew && (
-                                  <span className="inline-block px-2 py-1 bg-black text-white text-xs rounded mr-2">
-                                    NEW
-                                  </span>
-                                )}
-                                {product.isBestSeller && (
-                                  <span className="inline-block px-2 py-1 bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400 text-xs rounded">
-                                    BEST SELLER
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-right">
-                                {product.originalPrice && (
-                                  <div className={`text-sm line-through ${currentTheme.text.muted}`}>
-                                    {product.originalPrice}
-                                  </div>
-                                )}
-                                <div className={`text-xl font-bold font-instrument ${currentTheme.text.primary}`}>
-                                  {product.price}
-                                </div>
-                              </div>
-                            </div>
-
-                            <div className="flex gap-2 mt-4">
-                              <button
-                                onClick={() => handleAddToCart(product)}
-                                className="flex-1 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
-                              >
-                                <ShoppingBag className="w-4 h-4" />
-                                Add to Cart
-                              </button>
-                              <button className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                                View Details
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                  {currentProducts.map(product => (
+                    <ProductCard
+                      key={product.id}
+                      product={product}
+                      liked={!!likedProducts[product.id]}
+                      onToggleLike={() => toggleLike(product.id)}
+                      onAddToCart={() => handleAddToCart(product)}
+                      onCartUpdate={handleCartUpdate}
+                    />
+                  ))}
+                </div>
 
                 {/* Pagination */}
                 {totalPages > 1 && (
@@ -992,11 +926,11 @@ const Shop = () => {
         </div>
       </div>
 
-            {/* Cart Sidebar */}
-        <CartSidebar 
-          isOpen={showCartSidebar} 
-          onClose={() => setShowCartSidebar(false)} 
-        />
+      {/* Cart Sidebar */}
+      <CartSidebar 
+        isOpen={showCartSidebar} 
+        onClose={() => setShowCartSidebar(false)} 
+      />
     </div>
   );
 };

@@ -5,6 +5,10 @@ import { Star, Zap, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
 import { useGetBestSellersQuery } from "../../redux/services/productService";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import LoadingSpinner from "../../components/Common/LoadingSpinner";
+import { useSelector, useDispatch } from 'react-redux'; // Add useDispatch
+import { addToCart } from '../../redux/slices/cartSlice'; // Import addToCart action
+import { toast } from 'react-hot-toast'; // Add toast for notifications
+import CartSidebar from "../../components/layout/CartSidebar"; // Add CartSidebar
 
 const BestSellingProducts = () => {
   const { theme } = useTheme();
@@ -12,6 +16,9 @@ const BestSellingProducts = () => {
   const [likedItems, setLikedItems] = useState({});
   const [currentPage, setCurrentPage] = useState(0);
   const [filteredProducts, setFilteredProducts] = useState([]);
+  const [showCartSidebar, setShowCartSidebar] = useState(false); // Add state for cart sidebar
+  
+  const dispatch = useDispatch(); // Initialize dispatch
 
   // Fetch best sellers from API
   const { data: apiData, isLoading, error } = useGetBestSellersQuery();
@@ -31,8 +38,43 @@ const BestSellingProducts = () => {
         ? Math.round(((product.normalPrice - product.offerPrice) / product.normalPrice) * 100)
         : 0;
 
+      // Get all images for the product
+      const getAllImages = () => {
+        const images = [];
+        
+        // Add variant images
+        if (primaryVariant?.variantImages) {
+          primaryVariant.variantImages.forEach(img => {
+            if (img.imageUrl) images.push(img.imageUrl);
+          });
+        }
+        
+        // Add other variant images
+        if (product.variants) {
+          product.variants.forEach(variant => {
+            if (variant.variantImages) {
+              variant.variantImages.forEach(img => {
+                if (img.imageUrl && !images.includes(img.imageUrl)) {
+                  images.push(img.imageUrl);
+                }
+              });
+            }
+          });
+        }
+        
+        // Fallback
+        if (images.length === 0) {
+          images.push('https://via.placeholder.com/300x400');
+        }
+        
+        return images;
+      };
+
+      const productImages = getAllImages();
+
       return {
         id: product.id,
+        _id: product.id,
         name: product.name,
         productCode: product.productCode,
         category: product.category?.name || 'Uncategorized',
@@ -40,22 +82,26 @@ const BestSellingProducts = () => {
         originalPrice: product.offerPrice ? `₹${product.normalPrice}` : '',
         discount: discount > 0 ? `${discount}% OFF` : '',
         image: primaryImage?.imageUrl || 'https://via.placeholder.com/300x400',
+        images: productImages,
         isNew: product.isNewArrival,
         isBestSeller: product.isBestSeller,
         featured: product.featured,
-        variants: product.variants,
+        variants: product.variants || [],
         avgRating: product.avgRating || 0,
         totalRatings: product.totalRatings || 0,
         totalSales: product.totalSales || 0,
         colors: Array.from(new Set(product.variants?.map(v => v.color) || [])),
-        inStock: product.variants?.some(v => v.stock > 0) || false
+        inStock: product.variants?.some(v => v.stock > 0) || false,
+        normalPrice: product.normalPrice || 0,
+        offerPrice: product.offerPrice || 0,
+        wholesalePrice: product.wholesalePrice || 0
       };
     };
   }, []);
 
   // Memoize best selling products
   const bestSellingProducts = useMemo(() => {
-    const apiProducts = apiData?.data || [];
+    const apiProducts = apiData?.data || apiData || [];
     return apiProducts.map(transformApiProduct);
   }, [apiData, transformApiProduct]);
 
@@ -101,8 +147,75 @@ const BestSellingProducts = () => {
     setLikedItems((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // FIXED: Proper handleAddToCart function
   const handleAddToCart = (product) => {
-    // Your add to cart logic here
+    console.log('Adding to cart from BestSellingProducts:', product);
+    
+    // Check if product has variants
+    if (!product.variants || product.variants.length === 0) {
+      toast.error("Product variant not available");
+      return;
+    }
+
+    // Get the first variant (or you can let user select)
+    const variant = product.variants[0];
+    if (!variant) {
+      toast.error("Product variant not found");
+      return;
+    }
+
+    // Helper function to extract numeric price
+    const getNumericPrice = (priceValue) => {
+      if (!priceValue && priceValue !== 0) return 0;
+      if (typeof priceValue === 'string') {
+        // Remove currency symbols and commas
+        return parseFloat(priceValue.replace(/[₹,]/g, ''));
+      }
+      if (typeof priceValue === 'number') {
+        return priceValue;
+      }
+      return 0;
+    };
+
+    // Prepare cart item
+    const cartItem = {
+      id: `${product.id}-${variant.color || 'default'}`, // Unique ID
+      product: {
+        _id: product.id,
+        name: product.name,
+        price: getNumericPrice(product.normalPrice) || 0,
+        offerPrice: getNumericPrice(product.offerPrice) || null,
+        wholesalePrice: getNumericPrice(product.wholesalePrice) || null,
+        images: product.images || [product.image],
+        image: product.image,
+        category: product.category || 'Uncategorized',
+        description: ''
+      },
+      variant: {
+        _id: variant._id || `${product.id}-${variant.color || 'default'}`,
+        size: variant.size || 'N/A',
+        color: variant.color || 'Default',
+        price: variant.price || getNumericPrice(product.normalPrice) || 0,
+        stock: variant.stock || 0,
+        sku: variant.sku || '',
+        image: variant.variantImages?.[0]?.imageUrl || product.image
+      },
+      quantity: 1
+    };
+
+    // Dispatch the addToCart action
+    dispatch(addToCart(cartItem));
+    
+    // Show success message
+    toast.success(`${product.name} added to cart!`);
+    
+    // Open cart sidebar after adding
+    setShowCartSidebar(true);
+  };
+
+  // Cart update handler for ProductCard
+  const handleCartUpdate = () => {
+    setShowCartSidebar(true);
   };
 
   const nextPage = () => {
@@ -189,7 +302,12 @@ const BestSellingProducts = () => {
 
         {/* CATEGORY TABS */}
         {categories.length > 1 && (
-          <div className="flex flex-wrap justify-center gap-2 mb-10 lg:mb-14">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-wrap justify-center gap-2 mb-10 lg:mb-14"
+          >
             {categories.map((cat) => (
               <button
                 key={cat.id}
@@ -218,7 +336,7 @@ const BestSellingProducts = () => {
                 </span>
               </button>
             ))}
-          </div>
+          </motion.div>
         )}
 
         {/* PRODUCTS GRID */}
@@ -232,6 +350,7 @@ const BestSellingProducts = () => {
                   liked={!!likedItems[product.id]}
                   onToggleLike={() => toggleLike(product.id)}
                   onAddToCart={() => handleAddToCart(product)}
+                  onCartUpdate={handleCartUpdate}
                 />
               ))}
             </div>
@@ -276,7 +395,12 @@ const BestSellingProducts = () => {
         )}
 
         {/* VIEW ALL BUTTON */}
-        <div className="text-center mt-12 lg:mt-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="text-center mt-12 lg:mt-16"
+        >
           <motion.button
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
@@ -289,8 +413,14 @@ const BestSellingProducts = () => {
           <p className={`text-sm ${textSecondary} mt-4`}>
             {bestSellingProducts.length}+ top-selling outfits to explore
           </p>
-        </div>
+        </motion.div>
       </div>
+
+      {/* Add Cart Sidebar */}
+      <CartSidebar 
+        isOpen={showCartSidebar} 
+        onClose={() => setShowCartSidebar(false)} 
+      />
     </section>
   );
 };

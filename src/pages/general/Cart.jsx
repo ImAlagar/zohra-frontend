@@ -630,7 +630,7 @@ const Cart = () => {
                       <div className="flex-1 min-w-0">
                         <h4 className="font-medium text-sm truncate">{item.product?.name || 'Unnamed Product'}</h4>
                         <p className="text-xs opacity-75 mt-1">
-                          Color: {item.variant?.color || item.color || 'N/A'} | Size: {item.variant?.size || item.size || 'N/A'}
+                          Size: {item.variant?.size || item.size || 'N/A'}
                         </p>
                         <div className="flex items-center justify-between mt-2">
                           <p className="font-semibold text-sm">

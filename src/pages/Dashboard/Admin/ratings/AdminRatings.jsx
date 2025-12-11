@@ -248,9 +248,9 @@ const AdminRatings = () => {
       render: (value) => renderStars(value)
     },
     {
-      key: 'comment',
-      title: 'Comment',
-      dataIndex: 'comment',
+      key: 'review',
+      title: 'Review',
+      dataIndex: 'review',
       render: (value) => (
         <span className={`truncate max-w-xs block ${themeStyles.text.primary}`}>
           {value || 'No comment'}

@@ -2,7 +2,8 @@
 import {
   Mail, Phone, MapPin, Clock, Crown, Star, Sparkles,
   Home, User, ShoppingBag, Heart, Shield, Diamond,
-  Instagram, Facebook, Truck, RefreshCw, Package
+  Instagram, Facebook, Truck, RefreshCw, Package,
+  Contact
 } from "lucide-react";
 
 export const CONTACT_DATA = [
@@ -33,13 +34,7 @@ export const SOCIAL_MEDIA = [
 
 export const CATEGORIES = [
   "New Arrivals",
-  "Premium Collections",
-  "Evening Wear",
-  "Casual Wear",
-  "Traditional Wear",
-  "Accessories",
-  "Luxury Fabrics",
-  "Limited Editions"
+
 ];
 
 export const TRUST_BADGES = [
@@ -52,9 +47,9 @@ export const TRUST_BADGES = [
 
 export const QUICK_LINKS = [
   { label: "Home", path: "/", icon: Home },
-  { label: "New Arrivals", path: "/new-arrivals", icon: Sparkles },
-  { label: "Best Sellers", path: "/best-sellers", icon: Star },
-  { label: "About Us", path: "/about-us", icon: User }
+  { label: "About Us", path: "/about-us", icon: User },
+  { label: "Contact Us", path: "/contact", icon: Contact }
+
 ];
 
 export const POLICY_LINKS = [

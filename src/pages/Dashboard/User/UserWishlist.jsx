@@ -5,13 +5,16 @@ import { useEffect, useState } from 'react';
 import ProductCard from '../../../components/ProductCard/ProductCard';
 import { Heart, Trash2, ShoppingBag, AlertCircle } from "lucide-react";
 import CartSidebar from '../../../components/layout/CartSidebar';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux'; // Add useDispatch
+import { addToCart } from '../../../redux/slices/cartSlice'; // Import addToCart action
+import { toast } from 'react-hot-toast'; // Add toast for notifications
 import placeholderimage from "../../../assets/images/placeholder.jpg";
 
 const UserWishlist = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
+  const dispatch = useDispatch(); // Initialize dispatch
   const { 
     wishlistItems, 
     clearAllWishlist, 
@@ -21,9 +24,6 @@ const UserWishlist = () => {
 
   const [showCartSidebar, setShowCartSidebar] = useState(false);
 
-
-
-
   // Dynamic styles based on theme
   const isDark = theme === "dark";
   const bgColor = isDark ? "bg-black" : "bg-white";
@@ -32,12 +32,80 @@ const UserWishlist = () => {
 
   // Cart update handler
   const handleCartUpdate = () => {
-      setShowCartSidebar(true);
+    setShowCartSidebar(true);
   };
 
   // Remove from wishlist
   const handleRemoveFromWishlist = (productId) => {
     removeItemFromWishlist(productId);
+  };
+
+  // Handle Add to Cart from Wishlist
+  const handleAddToCartFromWishlist = (product) => {
+    console.log('Adding to cart from wishlist:', product);
+    
+    // Check if product has variants
+    if (!product.variants || product.variants.length === 0) {
+      toast.error("Product variant not available");
+      return;
+    }
+
+    // Get the first variant (or you can let user select)
+    const variant = product.variants[0];
+    if (!variant) {
+      toast.error("Product variant not found");
+      return;
+    }
+
+    // Helper function to extract numeric price
+    const getNumericPrice = (priceValue) => {
+      if (!priceValue && priceValue !== 0) return 0;
+      if (typeof priceValue === 'string') {
+        // Remove currency symbols and commas
+        return parseFloat(priceValue.replace(/[₹,]/g, ''));
+      }
+      if (typeof priceValue === 'number') {
+        return priceValue;
+      }
+      return 0;
+    };
+
+    // Prepare cart item
+    const cartItem = {
+      id: `${product.id}-${variant.color || 'default'}`, // Unique ID
+      product: {
+        _id: product.id,
+        name: product.name || product.title,
+        price: getNumericPrice(product.normalPrice) || 0,
+        offerPrice: getNumericPrice(product.offerPrice) || null,
+        wholesalePrice: getNumericPrice(product.wholesalePrice) || null,
+        images: Array.isArray(product.images) ? product.images : [product.image],
+        image: product.image,
+        category: product.category || 'Uncategorized'
+      },
+      variant: {
+        _id: variant._id || `${product.id}-${variant.color || 'default'}`,
+        size: variant.size || 'N/A',
+        color: variant.color || 'Default',
+        price: variant.price || getNumericPrice(product.normalPrice) || 0,
+        stock: variant.stock || product.stock || 0,
+        sku: variant.sku || '',
+        image: variant.image || product.image
+      },
+      quantity: 1
+    };
+
+    // Dispatch the addToCart action
+    dispatch(addToCart(cartItem));
+    
+    // Show success message
+    toast.success(`${product.name || product.title} added to cart!`);
+    
+    // Optionally remove from wishlist after adding to cart
+    // removeItemFromWishlist(product.id);
+    
+    // Open cart sidebar
+    setShowCartSidebar(true);
   };
 
   // Enhanced transformation with debugging
@@ -49,7 +117,6 @@ const UserWishlist = () => {
 
     const product = wishlistItem.product;
     const variant = wishlistItem.variant;
-    
     
     // Get the correct product ID
     const productId = product._id || product.id;
@@ -94,8 +161,6 @@ const UserWishlist = () => {
 
     const productImages = getProductImages();
 
-
-
     // Determine the correct price
     const getCorrectPrice = () => {
       // Try in this order: variant price -> product offer price -> product normal price -> product price -> 0
@@ -116,7 +181,7 @@ const UserWishlist = () => {
           _id: variant._id || `${productId}-${variant.color || 'default'}`,
           color: variant.color || 'Default',
           size: variant.size || 'N/A',
-          price: correctPrice, // Use the correct price
+          price: correctPrice,
           stock: variant.stock || product.stock || 0,
           variantImages: productImages.map(image => ({ imageUrl: image })),
           sku: variant.sku || '',
@@ -154,18 +219,34 @@ const UserWishlist = () => {
       return null;
     };
 
+    // Format price for display
+    const formatPriceForDisplay = (priceValue) => {
+      if (!priceValue && priceValue !== 0) return '₹0';
+      if (typeof priceValue === 'string') {
+        return priceValue.includes('₹') ? priceValue : `₹${priceValue}`;
+      }
+      if (typeof priceValue === 'number') {
+        return `₹${priceValue}`;
+      }
+      return '₹0';
+    };
+
+    const displayPrice = formatPriceForDisplay(correctPrice);
+    const displayOriginalPrice = product.normalPrice && product.offerPrice && product.offerPrice < product.normalPrice 
+      ? formatPriceForDisplay(product.normalPrice)
+      : null;
+
     const transformedProduct = {
       id: productId,
       _id: productId,
       name: product.name || 'Product Name',
       title: product.name || 'Product Name',
       category: product.category || 'Uncategorized',
-      price: `${correctPrice}`, // Use the correct price
-      originalPrice: product.normalPrice && product.offerPrice && product.offerPrice < product.normalPrice 
-        ? `₹${product.normalPrice}` 
-        : null,
+      price: displayPrice, // Formatted price string
+      originalPrice: displayOriginalPrice,
       discount: calculateDiscount(),
       image: productImages[0] || placeholderimage,
+      images: productImages, // Add images array
       variants: variants,
       colors: [...new Set(variants.map(v => v.color).filter(Boolean))],
       inStock: variants.some(v => v.stock > 0),
@@ -195,11 +276,6 @@ const UserWishlist = () => {
   const transformedProducts = wishlistItems
     .map(transformWishlistItem)
     .filter(product => product !== null && (product.id || product._id));
-
-
-  // Debug cart add function
-
-
 
   return (
     <section className={`py-12 transition-colors duration-500 ${bgColor} min-h-screen`}>
@@ -232,13 +308,11 @@ const UserWishlist = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-8 px-6 md:px-16">
           {transformedProducts.map((product, index) => (
             <div key={product.id || product._id || index} className="relative group">
-
               <ProductCard 
                 product={product} 
                 onCartUpdate={handleCartUpdate}
+                onAddToCart={() => handleAddToCartFromWishlist(product)} // Add this prop
               />
-
-            
             </div>
           ))}
         </div>
