@@ -225,7 +225,7 @@ const Checkout = () => {
   const getCleanProductId = (productId) => {
     if (!productId) return null;
     const colorSuffixes = ['-Red', '-Blue', '-Green', '-Black', '-White', '-Yellow'];
-    let cleanId = productId;
+    let cleanId = productId;  
     for (const suffix of colorSuffixes) {
       if (productId.endsWith(suffix)) {
         cleanId = productId.slice(0, -suffix.length);
