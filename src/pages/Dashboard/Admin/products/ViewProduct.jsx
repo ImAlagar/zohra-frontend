@@ -92,23 +92,44 @@ const ViewProduct = () => {
   };
 
   // Get all product images
-  const getAllImages = () => {
-    const images = [];
+const getAllImages = () => {
+  const images = [];
+  const uniqueImages = new Map(); // Use Map for better tracking
+  
+  const addImageIfUnique = (image) => {
+    if (!image || !image.imageUrl) return false;
     
-    if (product?.images && product.images.length > 0) {
-      images.push(...product.images);
+    // Use ID if available, otherwise use URL
+    const key = image.id || image.imageUrl;
+    
+    if (!uniqueImages.has(key)) {
+      uniqueImages.set(key, image);
+      return true;
     }
-    
-    if (product?.variants) {
-      product.variants.forEach(variant => {
-        if (variant.variantImages && variant.variantImages.length > 0) {
-          images.push(...variant.variantImages);
-        }
-      });
-    }
-    
-    return images;
+    return false;
   };
+  
+  // Add primary product images
+  if (product?.images && product.images.length > 0) {
+    product.images.forEach(image => {
+      addImageIfUnique(image);
+    });
+  }
+  
+  // Add variant images
+  if (product?.variants) {
+    product.variants.forEach(variant => {
+      if (variant.variantImages && variant.variantImages.length > 0) {
+        variant.variantImages.forEach(image => {
+          addImageIfUnique(image);
+        });
+      }
+    });
+  }
+  
+  // Convert Map values to array
+  return Array.from(uniqueImages.values());
+};
 
   const allImages = getAllImages();
   const primaryImage = allImages.find(img => img.isPrimary) || allImages[0];
@@ -324,27 +345,44 @@ const ViewProduct = () => {
             </div>
 
             {/* Thumbnail Gallery */}
-            {allImages.length > 1 && (
-              <div className="flex space-x-2 overflow-x-auto pb-2">
-                {allImages.map((image, index) => (
-                  <button
-                    key={image.id}
-                    onClick={() => setSelectedImage(index)}
-                    className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
-                      selectedImage === index 
-                        ? 'border-blue-500 ring-2 ring-blue-300 shadow-md' 
-                        : `${currentTheme.border} hover:border-gray-400 dark:hover:border-gray-500 hover:shadow-sm`
-                    }`}
-                  >
-                    <img
-                      src={image.imageUrl}
-                      alt={`${product.name} ${index + 1}`}
-                      className="w-full h-full object-cover"
-                    />
-                  </button>
-                ))}
-              </div>
-            )}
+              {allImages.length > 1 && (
+                <div className="flex space-x-2 overflow-x-auto pb-2">
+                  {allImages
+                    .filter((image, index, self) => 
+                      // Filter duplicates by checking if current image is the first occurrence
+                      index === self.findIndex(i => 
+                        // Compare by ID if available, otherwise by URL
+                        (i.id && image.id && i.id === image.id) || 
+                        i.imageUrl === image.imageUrl
+                      )
+                    )
+                    .map((image, index) => (
+                      <button
+                        key={image.id || image.imageUrl}
+                        onClick={() => {
+                          // Find the actual index in the original array for proper selection
+                          const actualIndex = allImages.findIndex(i => 
+                            (i.id && image.id && i.id === image.id) || 
+                            i.imageUrl === image.imageUrl
+                          );
+                          setSelectedImage(actualIndex);
+                        }}
+                        className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all duration-200 ${
+                          selectedImage === index 
+                            ? 'border-blue-500 ring-2 ring-blue-300 shadow-md' 
+                            : `${currentTheme.border} hover:border-gray-400 dark:hover:border-gray-500 hover:shadow-sm`
+                        }`}
+                      >
+                        <img
+                          src={image.imageUrl}
+                          alt={`${product.name} ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))
+                  }
+                </div>
+              )}
           </motion.div>
 
           {/* Product Details */}
@@ -517,23 +555,32 @@ const ViewProduct = () => {
                         {/* Variant Images */}
                         {variant.variantImages && variant.variantImages.length > 0 && (
                           <div className="flex space-x-2 overflow-x-auto">
-                            {variant.variantImages.map((image) => (
-                              <div key={image.id} className="flex-shrink-0">
-                                <img
-                                  src={image.imageUrl}
-                                  alt={`${variant.color} ${variant.size}`}
-                                  className="w-16 h-16 object-cover rounded border"
-                                  onClick={() => {
-                                    const allVariantImages = getAllImages();
-                                    const imageIndex = allVariantImages.findIndex(img => img.id === image.id);
-                                    if (imageIndex !== -1) {
-                                      openLightbox(imageIndex);
-                                    }
-                                  }}
-                                  style={{ cursor: 'pointer' }}
-                                />
-                              </div>
-                            ))}
+                            {variant.variantImages
+                              .filter((image, index, self) => 
+                                index === self.findIndex(i => 
+                                  i.id === image.id || i.imageUrl === image.imageUrl
+                                )
+                              )
+                              .map((image) => (
+                                <div key={image.id || image.imageUrl} className="flex-shrink-0">
+                                  <img
+                                    src={image.imageUrl}
+                                    alt={`${variant.color} ${variant.size}`}
+                                    className="w-16 h-16 object-cover rounded border"
+                                    onClick={() => {
+                                      const allVariantImages = getAllImages();
+                                      const imageIndex = allVariantImages.findIndex(img => 
+                                        img.id === image.id || img.imageUrl === image.imageUrl
+                                      );
+                                      if (imageIndex !== -1) {
+                                        openLightbox(imageIndex);
+                                      }
+                                    }}
+                                    style={{ cursor: 'pointer' }}
+                                  />
+                                </div>
+                              ))
+                            }
                           </div>
                         )}
                       </div>
