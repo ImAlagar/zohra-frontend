@@ -282,17 +282,7 @@ const ProductCard = ({
           )}
         </div>
 
-        {/* Wishlist / Like */}
-        <button
-          onClick={handleLikeClick}
-          className="absolute bottom-24 right-3 p-2 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm rounded-full shadow-lg hover:scale-110 transition-transform z-10"
-        >
-          <Heart
-            className={`w-4 h-4 ${
-              isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600 dark:text-gray-400'
-            }`}
-          />
-        </button>
+
 
         {/* Product Info Overlay (inside image) */}
         <div className="absolute bottom-0 left-0 w-full p-4 

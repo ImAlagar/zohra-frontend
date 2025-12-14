@@ -215,7 +215,7 @@ const CartSidebar = ({ isOpen, onClose }) => {
       totalDiscount = discountedTotals.summary.totalDiscount || 0;
     }
 
-    const shipping = actualSubtotal >= 50 ? 0 : 5.99;
+    const shipping = actualSubtotal >= 50 ? 0 : 0;
     const total = actualSubtotal + shipping;
 
     return {

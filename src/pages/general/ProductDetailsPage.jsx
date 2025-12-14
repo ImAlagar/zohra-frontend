@@ -135,25 +135,45 @@ const ProductDetailsPage = () => {
   };
 
   // Find selected variant
-  const getSelectedVariant = () => {
-    return variants.find(v => 
-      v?.color?.toLowerCase() === selectedColor?.toLowerCase() && 
-      v?.size === selectedSize
-    );
-  };
+const getSelectedVariant = () => {
+  return variants.find(v => {
+    // Handle color comparison
+    const variantColor = v?.color ? v.color.toLowerCase() : '';
+    const selectedColorLower = selectedColor ? selectedColor.toLowerCase() : '';
+    
+    // If product has no colors (availableColors is empty), don't require color match
+    if (availableColors.length === 0) {
+      // Only match by size when no colors are available
+      return v?.size === selectedSize;
+    } else {
+      // Match by both color and size when colors are available
+      return variantColor === selectedColorLower && v?.size === selectedSize;
+    }
+  });
+};
 
   // Check if item is in cart
-  const isItemInCart = () => {
-    if (!selectedColor && !selectedSize) return false;
-    
-    const variant = getSelectedVariant();
-    if (!variant) return false;
-    
-    return cartItems.some(item => 
-      item.product._id === product._id && 
-      item.variant._id === variant._id
-    );
-  };
+// Check if item is in cart
+const isItemInCart = () => {
+
+  
+  if (!selectedColor && !selectedSize) {
+    return false;
+  }
+  
+  const variant = getSelectedVariant();
+  if (!variant) {
+    return false;
+  }
+
+  
+  const isInCart = cartItems.some(item => {
+
+    return item.product._id === product._id && item.variant._id === variant._id;
+  });
+  
+  return isInCart;
+};
 
   // Wishlist handlers
   const handleToggleWishlist = () => {
@@ -179,8 +199,9 @@ const ProductDetailsPage = () => {
     }
   };
 
-// Add to cart handler - FIXED VERSION
+
 const handleAddToCart = () => {
+
   if (!selectedColor && availableColors.length > 0) {
     toast.error('Please select color');
     return;
@@ -192,6 +213,7 @@ const handleAddToCart = () => {
   }
 
   const variant = getSelectedVariant();
+  
   if (!variant) {
     toast.error('Please select valid options');
     return;
@@ -201,22 +223,21 @@ const handleAddToCart = () => {
     toast.error(`Only ${variant.stock} items available`);
     return;
   }
+  
   // 🔥 FIX: Check if we have proper MongoDB IDs
-  // If _id is undefined, try other possible ID fields
   const productId = product._id || product.id || product.productId;
   const variantId = variant._id || variant.id || variant.variantId;
 
   if (!productId) {
-    console.error('❌ No product ID found!', product);
     toast.error('Product information incomplete');
     return;
   }
 
   if (!variantId) {
-    console.error('❌ No variant ID found!', variant);
     toast.error('Variant information incomplete');
     return;
   }
+
 
   const cartPayload = {
     product: {
@@ -228,7 +249,6 @@ const handleAddToCart = () => {
       image: product.image || (product.images && product.images[0]) || '',
       normalPrice: product.normalPrice || 0,
       offerPrice: product.offerPrice || null,
-      // Add price for compatibility
       price: variant.price || product.offerPrice || product.normalPrice || 0
     },
     variant: {
@@ -244,10 +264,16 @@ const handleAddToCart = () => {
     quantity
   };
 
+  console.log('🚀 Dispatching cart payload:', cartPayload);
   
   dispatch(addToCart(cartPayload));
   toast.success('Added to cart');
   setShowCartSidebar(true);
+  
+  // Log current state after dispatch
+  setTimeout(() => {
+    console.log('🔄 Cart state after dispatch should be updated');
+  }, 100);
 };
 
   // Buy now handler

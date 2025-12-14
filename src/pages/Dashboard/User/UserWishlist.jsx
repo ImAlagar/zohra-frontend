@@ -5,16 +5,16 @@ import { useEffect, useState } from 'react';
 import ProductCard from '../../../components/ProductCard/ProductCard';
 import { Heart, Trash2, ShoppingBag, AlertCircle } from "lucide-react";
 import CartSidebar from '../../../components/layout/CartSidebar';
-import { useSelector, useDispatch } from 'react-redux'; // Add useDispatch
-import { addToCart } from '../../../redux/slices/cartSlice'; // Import addToCart action
-import { toast } from 'react-hot-toast'; // Add toast for notifications
+import { useSelector, useDispatch } from 'react-redux';
+import { addToCart } from '../../../redux/slices/cartSlice';
+import { toast } from 'react-hot-toast';
 import placeholderimage from "../../../assets/images/placeholder.jpg";
 
 const UserWishlist = () => {
   const { theme } = useTheme();
   const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
-  const dispatch = useDispatch(); // Initialize dispatch
+  const dispatch = useDispatch();
   const { 
     wishlistItems, 
     clearAllWishlist, 
@@ -40,9 +40,10 @@ const UserWishlist = () => {
     removeItemFromWishlist(productId);
   };
 
-  // Handle Add to Cart from Wishlist
+  // Handle Add to Cart from Wishlist - FIXED VERSION
   const handleAddToCartFromWishlist = (product) => {
-    console.log('Adding to cart from wishlist:', product);
+    console.log('Adding to cart from wishlist - Full product:', product);
+    console.log('Product variants:', product.variants);
     
     // Check if product has variants
     if (!product.variants || product.variants.length === 0) {
@@ -50,19 +51,52 @@ const UserWishlist = () => {
       return;
     }
 
-    // Get the first variant (or you can let user select)
-    const variant = product.variants[0];
-    if (!variant) {
-      toast.error("Product variant not found");
-      return;
+    // Get the variant that matches the wishlist item's size and color
+    // First, check the original wishlist item data
+    const wishlistItem = wishlistItems.find(item => {
+      const itemProductId = item.product?._id || item.product?.id;
+      return itemProductId === product.id || itemProductId === product._id;
+    });
+
+    console.log('Original wishlist item:', wishlistItem);
+    
+    let selectedVariant = product.variants[0]; // Default to first variant
+    
+    // If wishlist item has variant info, try to find matching variant
+    if (wishlistItem?.variant) {
+      console.log('Wishlist variant data:', wishlistItem.variant);
+      
+      // Try to find variant by size
+      if (wishlistItem.variant.size) {
+        const matchingVariant = product.variants.find(variant => 
+          variant.size === wishlistItem.variant.size
+        );
+        if (matchingVariant) {
+          selectedVariant = matchingVariant;
+          console.log('Found variant by size:', selectedVariant.size);
+        }
+      }
+      
+      // If not found by size, try by variant ID
+      if (wishlistItem.variant._id && !selectedVariant) {
+        const matchingVariant = product.variants.find(variant => 
+          variant._id === wishlistItem.variant._id
+        );
+        if (matchingVariant) {
+          selectedVariant = matchingVariant;
+        }
+      }
     }
+
+    console.log('Selected variant for cart:', selectedVariant);
 
     // Helper function to extract numeric price
     const getNumericPrice = (priceValue) => {
       if (!priceValue && priceValue !== 0) return 0;
       if (typeof priceValue === 'string') {
         // Remove currency symbols and commas
-        return parseFloat(priceValue.replace(/[₹,]/g, ''));
+        const cleaned = priceValue.replace(/[₹,$,£,€,]/g, '').trim();
+        return parseFloat(cleaned) || 0;
       }
       if (typeof priceValue === 'number') {
         return priceValue;
@@ -70,13 +104,24 @@ const UserWishlist = () => {
       return 0;
     };
 
+    // Get price - prioritize variant price
+    const variantPrice = getNumericPrice(selectedVariant.price);
+    const productPrice = getNumericPrice(product.normalPrice) || 
+                         getNumericPrice(product.offerPrice) || 
+                         getNumericPrice(product.price) || 0;
+    
+    const finalPrice = variantPrice > 0 ? variantPrice : productPrice;
+
+    // Create unique ID including size and color
+    const uniqueId = `${product.id}-${selectedVariant.size || 'default'}-${selectedVariant.color || 'default'}`;
+
     // Prepare cart item
     const cartItem = {
-      id: `${product.id}-${variant.color || 'default'}`, // Unique ID
+      id: uniqueId,
       product: {
         _id: product.id,
         name: product.name || product.title,
-        price: getNumericPrice(product.normalPrice) || 0,
+        price: productPrice,
         offerPrice: getNumericPrice(product.offerPrice) || null,
         wholesalePrice: getNumericPrice(product.wholesalePrice) || null,
         images: Array.isArray(product.images) ? product.images : [product.image],
@@ -84,31 +129,33 @@ const UserWishlist = () => {
         category: product.category || 'Uncategorized'
       },
       variant: {
-        _id: variant._id || `${product.id}-${variant.color || 'default'}`,
-        size: variant.size || 'N/A',
-        color: variant.color || 'Default',
-        price: variant.price || getNumericPrice(product.normalPrice) || 0,
-        stock: variant.stock || product.stock || 0,
-        sku: variant.sku || '',
-        image: variant.image || product.image
+        _id: selectedVariant._id || uniqueId,
+        size: selectedVariant.size || 'N/A',
+        color: selectedVariant.color || 'Default',
+        price: finalPrice,
+        stock: selectedVariant.stock || product.stock || 0,
+        sku: selectedVariant.sku || '',
+        image: selectedVariant.image || product.image
       },
       quantity: 1
     };
 
+    console.log('Cart item being added:', cartItem);
+
     // Dispatch the addToCart action
     dispatch(addToCart(cartItem));
     
-    // Show success message
-    toast.success(`${product.name || product.title} added to cart!`);
-    
-    // Optionally remove from wishlist after adding to cart
-    // removeItemFromWishlist(product.id);
+    // Show success message with size info
+    const sizeInfo = selectedVariant.size && selectedVariant.size !== 'N/A' 
+      ? ` (Size: ${selectedVariant.size})`
+      : '';
+    toast.success(`${product.name || product.title}${sizeInfo} added to cart!`);
     
     // Open cart sidebar
     setShowCartSidebar(true);
   };
 
-  // Enhanced transformation with debugging
+  // Enhanced transformation with better variant handling
   const transformWishlistItem = (wishlistItem, index) => {
     if (!wishlistItem?.product) {
       console.warn('Invalid wishlist item:', wishlistItem);
@@ -176,32 +223,51 @@ const UserWishlist = () => {
 
     // Build variants array for ProductCard
     const buildVariants = () => {
-      if (variant) {
-        const variantData = {
-          _id: variant._id || `${productId}-${variant.color || 'default'}`,
+      const variants = [];
+      
+      // If product has existing variants, use them
+      if (product.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+        product.variants.forEach(variantItem => {
+          variants.push({
+            _id: variantItem._id || `${productId}-${variantItem.color || 'default'}-${variantItem.size || 'N/A'}`,
+            color: variantItem.color || 'Default',
+            size: variantItem.size || 'N/A',
+            price: variantItem.price || correctPrice,
+            stock: variantItem.stock || product.stock || 0,
+            variantImages: (variantItem.variantImages || productImages).map(image => ({ imageUrl: image })),
+            sku: variantItem.sku || '',
+            image: variantItem.image || productImages[0]
+          });
+        });
+      } 
+      // If we have variant info from wishlist, create a variant from it
+      else if (variant) {
+        variants.push({
+          _id: variant._id || `${productId}-${variant.color || 'default'}-${variant.size || 'N/A'}`,
           color: variant.color || 'Default',
-          size: variant.size || 'N/A',
-          price: correctPrice,
+          size: variant.size || 'N/A', // Make sure size is included
+          price: variant.price || correctPrice,
           stock: variant.stock || product.stock || 0,
           variantImages: productImages.map(image => ({ imageUrl: image })),
           sku: variant.sku || '',
           image: variant.image || productImages[0]
-        };
-        return [variantData];
+        });
+      }
+      // If no variants at all, create a default one
+      else {
+        variants.push({
+          _id: productId,
+          color: product.color || 'Default',
+          size: 'N/A',
+          price: correctPrice,
+          stock: product.stock || 0,
+          variantImages: productImages.map(image => ({ imageUrl: image })),
+          sku: product.sku || '',
+          image: productImages[0]
+        });
       }
       
-      // If no variant, create a default one
-      const defaultVariant = {
-        _id: productId,
-        color: product.color || 'Default',
-        size: 'N/A',
-        price: correctPrice,
-        stock: product.stock || 0,
-        variantImages: productImages.map(image => ({ imageUrl: image })),
-        sku: product.sku || '',
-        image: productImages[0]
-      };
-      return [defaultVariant];
+      return variants;
     };
 
     const variants = buildVariants();
@@ -236,6 +302,17 @@ const UserWishlist = () => {
       ? formatPriceForDisplay(product.normalPrice)
       : null;
 
+    // Extract sizes and colors from variants
+    const extractSizes = () => {
+      const sizes = variants.map(variantItem => variantItem.size).filter(size => size && size !== 'N/A');
+      return [...new Set(sizes)];
+    };
+
+    const extractColors = () => {
+      const colors = variants.map(variantItem => variantItem.color).filter(color => color && color !== 'Default');
+      return [...new Set(colors)];
+    };
+
     const transformedProduct = {
       id: productId,
       _id: productId,
@@ -246,10 +323,11 @@ const UserWishlist = () => {
       originalPrice: displayOriginalPrice,
       discount: calculateDiscount(),
       image: productImages[0] || placeholderimage,
-      images: productImages, // Add images array
+      images: productImages,
       variants: variants,
-      colors: [...new Set(variants.map(v => v.color).filter(Boolean))],
-      inStock: variants.some(v => v.stock > 0),
+      colors: extractColors(),
+      sizes: extractSizes(), // Added sizes array
+      inStock: variants.some(variantItem => variantItem.stock > 0),
       normalPrice: product.normalPrice || 0,
       offerPrice: product.offerPrice || 0,
       wholesalePrice: product.wholesalePrice || 0,
@@ -260,7 +338,8 @@ const UserWishlist = () => {
       isNewArrival: product.isNewArrival || false,
       isBestSeller: product.isBestSeller || false,
       isNew: isNew,
-      color: variant?.color || product.color || '',
+      // Store the original wishlist variant for reference
+      wishlistVariant: variant,
       baseProductId: product.baseProductId || productId,
       description: product.description || '',
       stock: product.stock || 0,
@@ -268,6 +347,12 @@ const UserWishlist = () => {
       _rawProduct: product,
       _rawVariant: variant
     };
+
+    console.log('Transformed product - Size info:', {
+      productName: transformedProduct.name,
+      variants: transformedProduct.variants.map(variantItem => ({ size: variantItem.size, color: variantItem.color })),
+      sizes: transformedProduct.sizes
+    });
 
     return transformedProduct;
   };
@@ -311,7 +396,9 @@ const UserWishlist = () => {
               <ProductCard 
                 product={product} 
                 onCartUpdate={handleCartUpdate}
-                onAddToCart={() => handleAddToCartFromWishlist(product)} // Add this prop
+                onAddToCart={() => handleAddToCartFromWishlist(product)}
+                // Add debug info as tooltip instead of customActions to avoid nesting links
+                showDebugInfo={false} // Set to true to enable debug info
               />
             </div>
           ))}

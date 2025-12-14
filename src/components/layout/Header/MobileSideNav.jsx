@@ -125,7 +125,6 @@ const MobileSideNav = ({
 
   const accountMenuItems = [
     { label: 'My Orders', path: '/user/orders', icon: <FiPackage className="text-lg" /> },
-    { label: 'Wishlist', path: '/wishlist', icon: <FiHeart className="text-lg" /> },
     { label: 'Reviews', path: '/user/reviews', icon: <FiStar className="text-lg" /> },
   ];
 
