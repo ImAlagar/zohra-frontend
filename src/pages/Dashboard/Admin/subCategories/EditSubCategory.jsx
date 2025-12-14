@@ -31,12 +31,11 @@ const categories = categoriesResponse?.data?.categories ||
                   [];
 
   // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    categoryId: '',
-    isActive: true
-  });
+const [formData, setFormData] = useState({
+  name: '',
+  isActive: true
+});
+
 
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -103,12 +102,12 @@ const categories = categoriesResponse?.data?.categories ||
   // Initialize form with subcategory data
   useEffect(() => {
     if (subcategory) {
+
       setFormData({
         name: subcategory.name || '',
-        description: subcategory.description || '',
-        categoryId: subcategory.categoryId || '',
         isActive: subcategory.isActive ?? true
       });
+
 
       if (subcategory.image) {
         setImagePreview(subcategory.image);
@@ -170,21 +169,14 @@ const categories = categoriesResponse?.data?.categories ||
   };
 
   // Form validation
-  const validateForm = () => {
-    if (!formData.name.trim()) {
-      toast.error('Subcategory name is required');
-      return false;
-    }
-    if (!formData.description.trim()) {
-      toast.error('Subcategory description is required');
-      return false;
-    }
-    if (!formData.categoryId) {
-      toast.error('Please select a category');
-      return false;
-    }
-    return true;
-  };
+    const validateForm = () => {
+      if (!formData.name.trim()) {
+        toast.error('Subcategory name is required');
+        return false;
+      }
+      return true;
+    };
+
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -202,11 +194,8 @@ const categories = categoriesResponse?.data?.categories ||
       
       // Append form fields
       formDataToSend.append('name', formData.name);
-      formDataToSend.append('description', formData.description);
-      formDataToSend.append('categoryId', formData.categoryId);
       formDataToSend.append('isActive', formData.isActive.toString());
-      
-      // Append image if a new one was selected
+
       if (image) {
         formDataToSend.append('image', image);
       }
@@ -340,37 +329,9 @@ const categories = categoriesResponse?.data?.categories ||
                         />
                       </motion.div>
 
-                      <motion.div variants={itemVariants}>
-                        <TextArea
-                          label="Description *"
-                          name="description"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="Describe this subcategory..."
-                          rows={4}
-                        />
-                      </motion.div>
 
-                      <motion.div variants={itemVariants}>
-                        <label className={`block text-sm font-medium font-instrument ${currentTheme.text.secondary} mb-2`}>
-                          Category *
-                        </label>
-                        <select
-                          name="categoryId"
-                          value={formData.categoryId}
-                          onChange={handleInputChange}
-                          required
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${currentTheme.input}`}
-                        >
-                          <option value="">Select a category</option>
-                          {categories.map((category) => (
-                            <option key={category.id} value={category.id}>
-                              {category.name}
-                            </option>
-                          ))}
-                        </select>
-                      </motion.div>
+
+
 
                       <motion.div variants={itemVariants} className="flex items-center">
                         <input

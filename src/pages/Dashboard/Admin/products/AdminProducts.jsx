@@ -442,7 +442,7 @@ const handlePageSizeChange = (newSize) => {
         
         return (
           <div>
-            <span className={`font-medium ${themeStyles.text.primary}`}>
+            <span className={`font-medium line-through ${themeStyles.text.primary}`}>
               ₹{normalPrice.toFixed(2)}
             </span>
             {hasSpecialOffer && (

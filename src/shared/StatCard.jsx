@@ -242,26 +242,12 @@ const StatCard = ({
     }
   };
 
-  const TrendIndicator = () => {
-    if (!trend || trend === 'neutral') return null;
-    
-    return (
-      <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
-        transition={{ delay: delay + 0.5, type: "spring" }}
-        className={`ml-2 inline-flex items-center ${isPositive ? colors.text : 'text-red-500'}`}
-      >
-        <TrendingUp className={`w-3 h-3 ${isPositive ? '' : 'rotate-180'}`} />
-      </motion.div>
-    );
-  };
-
   const AlertIndicator = () => {
     if (!alert) return null;
 
     return (
       <motion.span 
+        key={`alert-${index}`}
         className="absolute -top-1 -right-1 flex h-3 w-3"
         animate={{ scale: [1, 1.2, 1] }}
         transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
@@ -312,7 +298,19 @@ const StatCard = ({
             >
               {value}
             </motion.p>
-            <TrendIndicator />
+            
+            {/* Inline Trend Indicator - no separate component */}
+            {trend && trend !== 'neutral' && (
+              <motion.div
+                key={`trend-${index}-${trend}`}
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ delay: delay + 0.5, type: "spring" }}
+                className={`ml-2 inline-flex items-center ${isPositive ? colors.text : 'text-red-500'}`}
+              >
+                <TrendingUp className={`w-3 h-3 ${isPositive ? '' : 'rotate-180'}`} />
+              </motion.div>
+            )}
           </div>
           
           {subtitle && (
@@ -344,6 +342,7 @@ const StatCard = ({
           {/* Change indicator */}
           {change !== undefined && (
             <motion.div 
+              key={`change-${index}`}
               className={`flex items-center font-medium mt-2 ${
                 isCompact ? 'text-xs' : 'text-sm'
               } ${isPositive ? 'text-green-600' : 'text-red-600'}`}
@@ -359,6 +358,7 @@ const StatCard = ({
           {/* Percentage indicator */}
           {percentage !== undefined && (
             <motion.p 
+              key={`percentage-${index}`}
               className={`font-medium ${colors.text} ${
                 isCompact ? 'text-xs' : 'text-sm'
               } mt-1`}
@@ -391,6 +391,7 @@ const StatCard = ({
       {/* Progress bar */}
       {progressBar && (
         <motion.div 
+          key={`progress-${index}`}
           className={`mt-4 rounded-full h-1.5 overflow-hidden ${themeStyles.background.progress}`}
           initial={{ width: 0 }}
           animate={{ width: "100%" }}
@@ -408,6 +409,7 @@ const StatCard = ({
       {/* Alert message */}
       {alert && (
         <motion.div 
+          key={`alert-msg-${index}`}
           className="mt-3"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}

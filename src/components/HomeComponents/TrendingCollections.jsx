@@ -271,7 +271,7 @@ const TrendingCollections = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className={`text-4xl md:text-5xl font-bold ${textPrimary} mb-4`}
           >
-            Fresh <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Arrivals</span>
+            NEW <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-purple-500">Arrivals</span>
           </motion.h2>
 
           <motion.p

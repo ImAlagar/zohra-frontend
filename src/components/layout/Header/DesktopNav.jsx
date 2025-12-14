@@ -278,7 +278,7 @@ const DesktopNav = ({
               : ''}`}
           >
             <FiGrid className="text-base" />
-            <span className="font-ui text-sm font-medium">Categories</span>
+            <span className="font-ui text-sm font-medium">Shop</span>
             <FiChevronDown className={`transition-transform duration-300 ${
               expandedSections.categories ? 'rotate-180' : ''
             } ${expandedSections.categories || location.pathname.startsWith('/shop/') ? 

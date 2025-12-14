@@ -254,7 +254,7 @@ const ContactSection = React.memo(({ colors, contactData }) => (
       colors={colors}
     />
     
-    <ul className="space-y-0 mb-8">
+    <ul className="">
       {contactData.map((item) => (
         <ContactItem 
           key={item.id} 

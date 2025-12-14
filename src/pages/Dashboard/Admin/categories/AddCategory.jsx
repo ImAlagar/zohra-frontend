@@ -20,7 +20,6 @@ const AddCategory = () => {
   // Form state
   const [formData, setFormData] = useState({
     name: '',
-    description: '',
   });
 
   const [image, setImage] = useState(null);
@@ -128,11 +127,8 @@ const AddCategory = () => {
       toast.error('Category name is required');
       return false;
     }
-    if (!formData.description.trim()) {
-      toast.error('Category description is required');
-      return false;
-    }
-    if (!image) {
+
+    if (image) {
       toast.error('Category image is required');
       return false;
     }
@@ -160,7 +156,6 @@ const AddCategory = () => {
       // Reset form
       setFormData({
         name: '',
-        description: '',
       });
       removeImage();
       
@@ -243,17 +238,6 @@ const AddCategory = () => {
                         />
                       </motion.div>
 
-                      <motion.div variants={itemVariants}>
-                        <TextArea
-                          label="Description *"
-                          name="description"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="Describe this category..."
-                          rows={4}
-                        />
-                      </motion.div>
                     </div>
                   </motion.section>
 
@@ -273,7 +257,7 @@ const AddCategory = () => {
                     <motion.div variants={itemVariants} className="space-y-4">
                       <div>
                         <label className={`block text-sm font-medium font-instrument ${currentTheme.text.secondary} mb-2`}>
-                          Category Image *
+                          Category Image
                         </label>
                         <p className={`text-sm ${currentTheme.text.muted} mb-4`}>
                           Upload a high-quality image that represents this category. Recommended size: 500x500px.

@@ -25,11 +25,10 @@ const categories = categoriesResponse?.data?.categories ||
                   [];
 
   // Form state
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    categoryId: '', // Changed from 'category' to 'categoryId'
-  });
+const [formData, setFormData] = useState({
+  name: ''
+});
+
 
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -148,28 +147,17 @@ const categories = categoriesResponse?.data?.categories ||
   };
 
   // Form validation
-  const validateForm = () => {
-    const newErrors = {};
+const validateForm = () => {
+  const newErrors = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Subcategory name is required';
-    }
+  if (!formData.name.trim()) {
+    newErrors.name = 'Subcategory name is required';
+  }
 
-    if (!formData.description.trim()) {
-      newErrors.description = 'Subcategory description is required';
-    }
+  setErrors(newErrors);
+  return Object.keys(newErrors).length === 0;
+};
 
-    if (!formData.categoryId || formData.categoryId === '') { // Updated to categoryId
-      newErrors.categoryId = 'Please select a category'; // Updated error key
-    }
-
-    if (!image) {
-      newErrors.image = 'Subcategory image is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
 
   // Handle form submission
   const handleSubmit = async (e) => {
@@ -182,12 +170,12 @@ const categories = categoriesResponse?.data?.categories ||
     setLoading(true);
 
     try {
-      const subcategoryData = {
-        name: formData.name.trim(),
-        description: formData.description.trim(),
-        categoryId: formData.categoryId, // Updated to categoryId
-        image: image
-      };
+      
+  const subcategoryData = {
+    name: formData.name.trim(),
+    image // optional
+  };
+
 
       await createSubcategory(subcategoryData).unwrap();
       
@@ -278,44 +266,6 @@ const categories = categoriesResponse?.data?.categories ||
                           error={errors.name}
                         />
                       </motion.div>
-
-                      <motion.div variants={itemVariants}>
-                        <TextArea
-                          label="Description *"
-                          name="description"
-                          value={formData.description}
-                          onChange={handleInputChange}
-                          required
-                          placeholder="Describe this subcategory..."
-                          rows={4}
-                          error={errors.description}
-                        />
-                      </motion.div>
-
-                      <motion.div variants={itemVariants}>
-                        <label className={`block text-sm font-medium font-instrument ${currentTheme.text.secondary} mb-2`}>
-                          Category *
-                        </label>
-                        <select
-                          name="categoryId" // Updated to categoryId
-                          value={formData.categoryId}
-                          onChange={handleInputChange}
-                          required
-                          className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            errors.categoryId ? 'border-red-500' : currentTheme.border
-                          } ${currentTheme.bg.card} ${currentTheme.text.primary}`}
-                        >
-                          <option value="">Select a category</option>
-                          {categories.map((category) => (
-                            <option key={category.id} value={category.id}>
-                              {category.name}
-                            </option>
-                          ))}
-                        </select>
-                        {errors.categoryId && ( // Updated error key
-                          <p className="text-red-500 text-sm mt-1">{errors.categoryId}</p>
-                        )}
-                      </motion.div>
                     </div>
                   </motion.section>
 
@@ -335,7 +285,7 @@ const categories = categoriesResponse?.data?.categories ||
                     <motion.div variants={itemVariants} className="space-y-4">
                       <div>
                         <label className={`block text-sm font-medium font-instrument ${currentTheme.text.secondary} mb-2`}>
-                          Subcategory Image *
+                          Subcategory Image (Optional)
                         </label>
                         <p className={`text-sm ${currentTheme.text.muted} mb-4`}>
                           Upload a high-quality image that represents this subcategory. Recommended size: 500x500px.
