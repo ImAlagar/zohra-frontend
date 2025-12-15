@@ -150,14 +150,20 @@ const Checkout = () => {
       
       for (const item of cartItems) {
         try {
-          const cleanProductId = getCleanProductId(item.product?._id);
-          if (!cleanProductId) continue;
+            const productId = item.product?._id;
+      if (!productId) continue;
 
-          const result = await calculateQuantityPrice({
-            productId: cleanProductId,
-            variantId: item.variant?._id,
-            quantity: item.quantity
-          }).unwrap();
+      // Clean variant ID if it has '-default'
+      let cleanVariantId = item.variant?._id;
+      if (cleanVariantId && cleanVariantId.endsWith('-default')) {
+        cleanVariantId = cleanVariantId.slice(0, -8);
+      }
+
+      const result = await calculateQuantityPrice({
+        productId: productId,  // Original product ID
+        variantId: cleanVariantId,  // Cleaned variant ID
+        quantity: item.quantity
+      }).unwrap();
 
           if (result.success) {
             const originalPrice = (item.variant?.price || item.product?.price || 0) * item.quantity;
@@ -224,16 +230,21 @@ const Checkout = () => {
   // Helper functions
   const getCleanProductId = (productId) => {
     if (!productId) return null;
+    
+    // List of color suffixes to remove
     const colorSuffixes = ['-Red', '-Blue', '-Green', '-Black', '-White', '-Yellow'];
-    let cleanId = productId;  
+    
+    // Check if productId ends with any color suffix
     for (const suffix of colorSuffixes) {
       if (productId.endsWith(suffix)) {
-        cleanId = productId.slice(0, -suffix.length);
-        break;
+        return productId.slice(0, -suffix.length);
       }
     }
-    return cleanId;
+    
+    // Return as is for -default and other suffixes
+    return productId;
   };
+
 
   const calculateItemTotal = (item) => {
     if (individualItemTotals[item.id]) {
@@ -262,27 +273,44 @@ const Checkout = () => {
     return '/placeholder-product.jpg';
   };
 
-  const getOrderItemsData = () => {
-    return cartItems.map((item) => {
-      const productId = item.product?._id || item.product?.id;
-      const variantId = item.variant?._id || item.variant?.id;
+const getOrderItemsData = () => {
+  return cartItems.map((item) => {
+    // Get the IDs
+    const productId = item.product?._id || item.product?.id;
+    const variantId = item.variant?._id || item.variant?.id;
 
-      if (!productId) {
-        throw new Error(`Missing product ID for: ${item.product?.name || 'Unknown Product'}`);
+
+
+    if (!productId) {
+      throw new Error(`Missing product ID for: ${item.product?.name || 'Unknown Product'}`);
+    }
+
+    // Create order item with original product ID
+    const orderItem = {
+      productId: productId,  // Keep original product ID
+      quantity: item.quantity || 1
+    };
+
+    // If variant exists and is different from product ID
+    if (variantId && variantId !== productId) {
+      // Remove '-default' suffix from variant ID if present
+      let cleanVariantId = variantId;
+      if (variantId.endsWith('-default')) {
+        cleanVariantId = variantId.slice(0, -8); // Remove '-default' (8 characters)
       }
-
-      const orderItem = {
-        productId: productId,
-        quantity: item.quantity || 1
-      };
-
-      if (variantId && variantId !== productId) {
-        orderItem.productVariantId = variantId;
+      // Only add productVariantId if we have a clean variant ID
+      if (cleanVariantId && cleanVariantId !== productId) {
+        orderItem.productVariantId = cleanVariantId;
       }
+    } else {
+      // If variantId doesn't exist or is same as productId, use productId for variant
+      orderItem.productVariantId = productId;
+    }
 
-      return orderItem;
-    });
-  };
+    return orderItem;
+  });
+};
+
 
   // Form validation
   const validateForm = () => {
