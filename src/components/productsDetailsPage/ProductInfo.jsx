@@ -282,18 +282,7 @@ const ProductInfo = ({
           <span>Buy Now</span>
         </button>
 
-        {/* Wishlist Button */}
-        <button
-          onClick={onToggleWishlist}
-          className={`p-2 sm:p-3 rounded-lg border flex items-center justify-center transition-all duration-200 ${
-            isLiked
-              ? 'bg-red-50 border-red-200 text-red-600'
-              : 'bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600'
-          }`}
-          title={isLiked ? "Remove from wishlist" : "Add to wishlist"}
-        >
-          <Heart className={`w-5 h-5 ${isLiked ? 'fill-red-600' : ''}`} />
-        </button>
+
       </div>
 
       {/* Added to Cart Indicator */}

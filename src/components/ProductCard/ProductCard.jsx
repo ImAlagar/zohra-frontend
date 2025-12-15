@@ -233,7 +233,7 @@ const ProductCard = ({
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       whileHover={{ y: -5 }}
-      className="group relative"
+      className="group relative font-ui"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
@@ -260,7 +260,7 @@ const ProductCard = ({
           {/* Image Counter (only show if multiple images) */}
           {variantImages.length > 1 && (
             <div className="absolute bottom-4 right-4 bg-black/70 backdrop-blur-sm px-2 py-1 rounded-full">
-              <span className="text-xs text-white">
+              <span className="text-xs text-white font-body">
                 {currentImageIndex + 1}/{variantImages.length}
               </span>
             </div>
@@ -270,12 +270,12 @@ const ProductCard = ({
         {/* Badges (NEW, SALE) */}
         <div className="absolute top-3 left-3 flex flex-col gap-1">
           {isNew && (
-            <span className="px-3 py-1 bg-black text-white text-xs font-bold rounded-sm">
+            <span className="px-3 py-1 bg-black text-white text-xs font-bold rounded-sm font-ui">
               # NEW
             </span>
           )}
           {discount && (
-            <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-sm flex items-center gap-1">
+            <span className="px-3 py-1 bg-red-600 text-white text-xs font-bold rounded-sm flex items-center gap-1 font-ui">
               <Tag className="w-3 h-3" />
               {discount}
             </span>
@@ -289,18 +289,18 @@ const ProductCard = ({
           bg-gradient-to-t from-black/90 to-transparent text-white z-10">
           
           {/* FIXED: Use displayName instead of name */}
-          <h3 className="text-base font-medium mb-1 line-clamp-1">
+          <h3 className="text-base font-medium mb-1 line-clamp-1 font-subheading">
             {displayName}
           </h3>
 
           <div className="flex items-center justify-between">
             <div>
               {originalPrice && originalPrice !== price && (
-                <div className="text-sm line-through text-gray-300">
+                <div className="text-sm line-through text-gray-300 font-body">
                   {originalPrice}
                 </div>
               )}
-              <div className="text-lg font-bold text-white">
+              <div className="text-lg font-bold text-white font-body">
                 {price}
               </div>
             </div>

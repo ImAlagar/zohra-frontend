@@ -88,6 +88,7 @@ import AddQuantityPrice from "../pages/Dashboard/Admin/quantity-pricing/AddQuant
 import EditQuantityPrice from "../pages/Dashboard/Admin/quantity-pricing/EditQuantityPrice";
 import ViewQuantityPrice from "../pages/Dashboard/Admin/quantity-pricing/ViewQuantityPrice";
 import ReviewsPage from "../pages/general/ReviewsPage";
+import AllReviews from "../pages/general/AllReviews";
 
 
 
@@ -118,7 +119,10 @@ export const router = createBrowserRouter([
         path: "/contact",
         element: <Contact />
       },
-
+      {
+        path: "/reviews",
+        element: <AllReviews />
+      },
       {
         path: "/wishlist",
         element: <UserWishlist />

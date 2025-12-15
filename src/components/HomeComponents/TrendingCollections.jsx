@@ -9,6 +9,7 @@ import { useSelector, useDispatch } from 'react-redux'; // Add useDispatch
 import { addToCart } from '../../redux/slices/cartSlice'; // Import addToCart action
 import { toast } from 'react-hot-toast'; // Add toast for notifications
 import CartSidebar from "../../components/layout/CartSidebar"; // Add CartSidebar
+import { Link } from "react-router-dom";
 
 const TrendingCollections = () => {
   const { theme } = useTheme();
@@ -144,7 +145,6 @@ const TrendingCollections = () => {
 
   // FIXED: Proper handleAddToCart function
   const handleAddToCart = (product) => {
-    console.log('Adding to cart from TrendingCollections:', product);
     
     // Check if product has variants
     if (!product.variants || product.variants.length === 0) {
@@ -382,7 +382,7 @@ const TrendingCollections = () => {
             whileTap={{ scale: 0.95 }}
             className="px-8 py-3.5 bg-gradient-to-r from-blue-600 to-purple-500 text-white rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-2 mx-auto"
           >
-            View All New Arrivals
+            <Link to={'/shop'}> View All New Arrivals</Link>
             <Clock className="w-5 h-5" />
           </motion.button>
 

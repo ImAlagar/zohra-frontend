@@ -67,7 +67,7 @@ const CollectionsBanner = () => {
           transition={{ duration: 0.7, delay: 0.3 }}
         >
           <a 
-            href="/shop" 
+            href="https://zohrawomens.com/shop" 
             target="_blank" 
             rel="noopener noreferrer"
           >
@@ -111,13 +111,13 @@ const CollectionsBanner = () => {
           className="mt-8"
         >
           <a 
-            href="/shop" 
+            href="https://zohrawomens.com/shop" 
             target="_blank" 
             rel="noopener noreferrer"
             className="text-gray-300 hover:text-white text-sm md:text-base font-medium transition-colors inline-flex items-center gap-2"
           >
             <span className="text-amber-300">→</span>
-            shop
+            https://zohrawomens.com/shop
           </a>
         </motion.div>
 

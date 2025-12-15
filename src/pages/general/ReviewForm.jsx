@@ -1,4 +1,4 @@
-// components/Product/ReviewForm.jsx - UPDATED WITH EDIT SUPPORT
+// components/Product/ReviewForm.jsx - UPDATED WITH VARIANT SELECTION
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { useTheme } from '../../context/ThemeContext';
@@ -6,7 +6,7 @@ import { useCreateRatingMutation, useUpdateRatingMutation } from '../../redux/se
 import { toast } from 'react-toastify';
 import { Link } from 'react-router-dom';
 
-const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
+const ReviewForm = ({ productId, productVariants = [], onReviewSubmitted, editData = null }) => {
   const { theme } = useTheme();
   const isDark = theme === 'dark';
   const user = useSelector((state) => state.auth.user);
@@ -18,7 +18,8 @@ const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
     rating: 0,
     title: '',
     review: '',
-    isAnonymous: false
+    isAnonymous: false,
+    variantId: '' // Add variantId to form data
   });
   
   const [hoverRating, setHoverRating] = useState(0);
@@ -30,10 +31,14 @@ const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
         rating: editData.rating || 0,
         title: editData.title || '',
         review: editData.comment || editData.review || '',
-        isAnonymous: editData.isAnonymous || false
+        isAnonymous: editData.isAnonymous || false,
+        variantId: editData.variantId || editData.variant?.id || '' // Get variantId from editData
       });
     }
   }, [editData]);
+
+  // If productVariants is provided, show variant selection
+  const showVariantSelection = productVariants && productVariants.length > 0 && !editData;
 
   const handleRatingChange = (rating) => {
     setFormData(prev => ({ ...prev, rating }));
@@ -45,6 +50,16 @@ const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleVariantChange = (e) => {
+    const variantId = e.target.value;
+    setFormData(prev => ({ ...prev, variantId }));
+  };
+
+  const getSelectedVariant = () => {
+    if (!formData.variantId) return null;
+    return productVariants.find(variant => variant.id === formData.variantId);
   };
 
   const handleSubmit = async (e) => {
@@ -60,38 +75,47 @@ const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
       return;
     }
 
+    // If variants exist, user must select one or explicitly choose "General"
+    if (showVariantSelection && !formData.variantId) {
+      toast.error('Please select a variant or choose "General Review"');
+      return;
+    }
+
     try {
+      const ratingData = {
+        productId,
+        rating: formData.rating,
+        title: formData.title,
+        review: formData.review,
+        isAnonymous: formData.isAnonymous
+      };
+
+      // Only include variantId if it's selected (not empty string)
+      if (formData.variantId) {
+        ratingData.variantId = formData.variantId;
+      }
+
       if (editData) {
         // Update existing review
         await updateRating({
           ratingId: editData._id || editData.id,
-          ratingData: {
-            rating: formData.rating,
-            title: formData.title,
-            review: formData.review,
-            isAnonymous: formData.isAnonymous
-          }
+          ratingData
         }).unwrap();
         toast.success('Review updated successfully!');
       } else {
         // Create new review
-        await createRating({
-          productId,
-          rating: formData.rating,
-          title: formData.title,
-          review: formData.review,
-          isAnonymous: formData.isAnonymous
-        }).unwrap();
+        await createRating(ratingData).unwrap();
         toast.success('Review submitted successfully!');
       }
 
-      // Reset form
+      // Reset form only if not editing
       if (!editData) {
         setFormData({
           rating: 0,
           title: '',
           review: '',
-          isAnonymous: false
+          isAnonymous: false,
+          variantId: ''
         });
       }
 
@@ -133,6 +157,87 @@ const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
     );
   };
 
+  const renderVariantSelection = () => {
+    const selectedVariant = getSelectedVariant();
+    
+    return (
+      <div className="space-y-3">
+        <div>
+          <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
+            Select Variant *
+          </label>
+          <div className="space-y-2">
+            {/* General Review Option */}
+            <div className="flex items-center">
+              <input
+                type="radio"
+                id="variant-general"
+                name="variantId"
+                value=""
+                checked={formData.variantId === ''}
+                onChange={handleVariantChange}
+                className="w-4 h-4 text-blue-600"
+              />
+              <label htmlFor="variant-general" className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                General Review (Product Overall)
+              </label>
+            </div>
+
+            {/* Specific Variants */}
+            {productVariants.map((variant) => (
+              <div key={variant.id} className="flex items-center">
+                <input
+                  type="radio"
+                  id={`variant-${variant.id}`}
+                  name="variantId"
+                  value={variant.id}
+                  checked={formData.variantId === variant.id}
+                  onChange={handleVariantChange}
+                  className="w-4 h-4 text-blue-600"
+                />
+                <label htmlFor={`variant-${variant.id}`} className="ml-2 text-sm text-gray-700 dark:text-gray-300">
+                  {variant.size && `Size: ${variant.size} `}
+                  {variant.sku && `(SKU: ${variant.sku})`}
+                </label>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Selected Variant Preview */}
+        {selectedVariant && (
+          <div className={`p-3 rounded-md ${isDark ? 'bg-gray-700' : 'bg-gray-50'}`}>
+            <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              Reviewing Specific Variant:
+            </p>
+            <div className="flex items-center space-x-3">
+              {selectedVariant.primaryImage && (
+                <img
+                  src={selectedVariant.primaryImage.imageUrl}
+                  alt="Variant"
+                  className="w-12 h-12 object-cover rounded"
+                  onError={(e) => {
+                    e.target.src = '/images/placeholder-product.jpg';
+                  }}
+                />
+              )}
+              <div>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  {selectedVariant.color && `Color: ${selectedVariant.color}`}
+                  {selectedVariant.color && selectedVariant.size && ' • '}
+                  {selectedVariant.size && `Size: ${selectedVariant.size}`}
+                </p>
+                {selectedVariant.sku && (
+                  <p className="text-xs text-gray-500">SKU: {selectedVariant.sku}</p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   if (!user) {
     return (
       <div className={`p-6 rounded-lg border ${isDark ? 'bg-gray-800 border-gray-700' : 'bg-gray-50 border-gray-200'}`}>
@@ -152,6 +257,9 @@ const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
       </h3>
       
       <form onSubmit={handleSubmit} className="space-y-4">
+        {/* Variant Selection - Only show when creating new review and variants exist */}
+        {showVariantSelection && renderVariantSelection()}
+
         {/* Star Rating */}
         <div>
           <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
@@ -236,9 +344,9 @@ const ReviewForm = ({ productId, onReviewSubmitted, editData = null }) => {
           )}
           <button
             type="submit"
-            disabled={isLoading || !formData.rating || !formData.review.trim()}
+            disabled={isLoading || !formData.rating || !formData.review.trim() || (showVariantSelection && formData.variantId === undefined)}
             className={`px-6 py-2 rounded-md font-medium transition-colors ${
-              isLoading || !formData.rating || !formData.review.trim()
+              isLoading || !formData.rating || !formData.review.trim() || (showVariantSelection && formData.variantId === undefined)
                 ? 'bg-gray-400 cursor-not-allowed text-gray-200'
                 : 'bg-blue-600 hover:bg-blue-700 text-white'
             }`}

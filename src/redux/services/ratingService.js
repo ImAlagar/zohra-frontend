@@ -225,7 +225,15 @@ export const ratingService = apiSlice.injectEndpoints({
     // Get all ratings (admin)
     getAllRatings: builder.query({
       query: (params = {}) => {
-        const { page = 1, limit = 10, status, rating, productId, userId } = params;
+        const { 
+          page = 1, 
+          limit = 10, 
+          status, 
+          rating, 
+          productId, 
+          userId, 
+          variantId // Add variantId
+        } = params;
         const queryParams = new URLSearchParams();
         
         queryParams.append('page', page);
@@ -247,12 +255,17 @@ export const ratingService = apiSlice.injectEndpoints({
           queryParams.append('userId', userId);
         }
         
+        if (variantId) {
+          queryParams.append('variantId', variantId); // Add variantId to query params
+        }
+        
         return {
           url: `/ratings/admin?${queryParams.toString()}`,
         };
       },
       providesTags: ['Rating'],
       transformResponse: (response) => {
+        // Your existing transform logic remains the same
         if (response.data && response.data.ratings) {
           return response;
         } else if (Array.isArray(response.data)) {

@@ -264,16 +264,12 @@ const handleAddToCart = () => {
     quantity
   };
 
-  console.log('🚀 Dispatching cart payload:', cartPayload);
   
   dispatch(addToCart(cartPayload));
   toast.success('Added to cart');
   setShowCartSidebar(true);
   
-  // Log current state after dispatch
-  setTimeout(() => {
-    console.log('🔄 Cart state after dispatch should be updated');
-  }, 100);
+
 };
 
   // Buy now handler
@@ -342,7 +338,7 @@ const handleAddToCart = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
+    <div className="min-h-screen font-ui bg-white dark:bg-gray-900 text-gray-900 dark:text-white">
       <Breadcrumb 
         productName={productName} 
         productCategory={productCategory} 
@@ -415,7 +411,7 @@ const handleAddToCart = () => {
         {/* Support CTA */}
         <div className="p-6 rounded-xl bg-white dark:bg-gray-800 shadow-md border border-gray-200 dark:border-gray-700">
           <div className="text-center">
-            <h3 className="text-xl font-semibold mb-2">
+            <h3 className="text-xl font-subheading font-semibold mb-2">
               Need Help Choosing?
             </h3>
             <p className="mb-4 text-gray-600 dark:text-gray-400">

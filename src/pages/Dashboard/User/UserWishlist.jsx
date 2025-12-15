@@ -42,8 +42,6 @@ const UserWishlist = () => {
 
   // Handle Add to Cart from Wishlist - FIXED VERSION
   const handleAddToCartFromWishlist = (product) => {
-    console.log('Adding to cart from wishlist - Full product:', product);
-    console.log('Product variants:', product.variants);
     
     // Check if product has variants
     if (!product.variants || product.variants.length === 0) {
@@ -58,13 +56,11 @@ const UserWishlist = () => {
       return itemProductId === product.id || itemProductId === product._id;
     });
 
-    console.log('Original wishlist item:', wishlistItem);
     
     let selectedVariant = product.variants[0]; // Default to first variant
     
     // If wishlist item has variant info, try to find matching variant
     if (wishlistItem?.variant) {
-      console.log('Wishlist variant data:', wishlistItem.variant);
       
       // Try to find variant by size
       if (wishlistItem.variant.size) {
@@ -73,7 +69,6 @@ const UserWishlist = () => {
         );
         if (matchingVariant) {
           selectedVariant = matchingVariant;
-          console.log('Found variant by size:', selectedVariant.size);
         }
       }
       
@@ -88,7 +83,6 @@ const UserWishlist = () => {
       }
     }
 
-    console.log('Selected variant for cart:', selectedVariant);
 
     // Helper function to extract numeric price
     const getNumericPrice = (priceValue) => {
@@ -140,7 +134,6 @@ const UserWishlist = () => {
       quantity: 1
     };
 
-    console.log('Cart item being added:', cartItem);
 
     // Dispatch the addToCart action
     dispatch(addToCart(cartItem));
@@ -348,11 +341,7 @@ const UserWishlist = () => {
       _rawVariant: variant
     };
 
-    console.log('Transformed product - Size info:', {
-      productName: transformedProduct.name,
-      variants: transformedProduct.variants.map(variantItem => ({ size: variantItem.size, color: variantItem.color })),
-      sizes: transformedProduct.sizes
-    });
+
 
     return transformedProduct;
   };

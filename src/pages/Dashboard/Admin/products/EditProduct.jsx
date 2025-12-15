@@ -487,11 +487,7 @@ const removeColorVariant = async (color) => {
     setVariantLoading(prev => ({ ...prev, [color]: true }));
     
     try {
-      console.log('Deleting variant:', {
-        productId,
-        variantId: variant.variantId
-      });
-      
+
       const result = await deleteProductVariant({
         productId: productId,
         variantId: variant.variantId

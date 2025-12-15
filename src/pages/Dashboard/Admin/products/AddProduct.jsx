@@ -1317,7 +1317,7 @@ const AddProduct = () => {
                                   type="text"
                                   value={size.size}
                                   onChange={(e) => handleSimpleSizeChange(index, 'size', e.target.value)}
-                                  placeholder="e.g., M, L, ONE SIZE"
+                                  placeholder="e.g., M, L,XL,2XL,3XL..."
                                   className={`w-full px-4 py-2 border ${currentTheme.border} rounded-lg ${currentTheme.bg.input} ${currentTheme.text.primary}`}
                                 />
                               </div>

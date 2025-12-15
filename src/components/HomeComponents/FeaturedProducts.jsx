@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "framer-motion";
 import { useTheme } from "../../context/ThemeContext";
 import { Star, Zap, ChevronLeft, ChevronRight, TrendingUp } from "lucide-react";
-import { useGetBestSellersQuery } from "../../redux/services/productService";
+import { useGetFeaturedProductsQuery } from "../../redux/services/productService";
 import ProductCard from "../../components/ProductCard/ProductCard";
 import LoadingSpinner from "../../components/Common/LoadingSpinner";
 import { useSelector, useDispatch } from 'react-redux'; // Add useDispatch
@@ -11,7 +11,8 @@ import { toast } from 'react-hot-toast'; // Add toast for notifications
 import CartSidebar from "../../components/layout/CartSidebar"; // Add CartSidebar
 import { Link } from "react-router-dom";
 
-const BestSellingProducts = () => {
+
+const FeaturedProducts = () => {
   const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState("all");
   const [likedItems, setLikedItems] = useState({});
@@ -22,7 +23,7 @@ const BestSellingProducts = () => {
   const dispatch = useDispatch(); // Initialize dispatch
 
   // Fetch best sellers from API
-  const { data: apiData, isLoading, error } = useGetBestSellersQuery();
+  const { data: apiData, isLoading, error } = useGetFeaturedProductsQuery();
 
   const textPrimary = theme === "dark" ? "text-white" : "text-gray-900";
   const textSecondary = theme === "dark" ? "text-gray-300" : "text-gray-600";
@@ -273,8 +274,8 @@ const BestSellingProducts = () => {
           >
             <Star className="w-5 h-5 text-yellow-500" />
             <span className="text-sm font-semibold text-yellow-600 dark:text-yellow-400">
-              BEST SELLERS
-            </span>
+                FEATURED PRODUCTS
+             </span>
             <TrendingUp className="w-5 h-5 text-orange-500" />
           </motion.div>
 
@@ -284,7 +285,7 @@ const BestSellingProducts = () => {
             transition={{ duration: 0.5, delay: 0.1 }}
             className={`text-4xl md:text-5xl font-bold ${textPrimary} mb-4`}
           >
-            Top Selling{" "}
+            Feature{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-600 to-orange-500">
               Products
             </span>
@@ -296,7 +297,7 @@ const BestSellingProducts = () => {
             transition={{ duration: 0.5, delay: 0.2 }}
             className={`text-lg ${textSecondary} max-w-2xl mx-auto`}
           >
-            Customer favorites and top-rated nightwear loved by everyone.
+            Customer favorites and top-feature nightwear loved by everyone.
           </motion.p>
         </div>
 
@@ -390,7 +391,7 @@ const BestSellingProducts = () => {
           </>
         ) : (
           <div className="text-center py-12">
-            <p className={`text-lg ${textSecondary}`}>No best selling products found.</p>
+            <p className={`text-lg ${textSecondary}`}>No feature  products found.</p>
           </div>
         )}
 
@@ -406,12 +407,12 @@ const BestSellingProducts = () => {
             whileTap={{ scale: 0.95 }}
             className="px-8 py-3.5 bg-gradient-to-r from-yellow-600 to-orange-500 text-white rounded-full font-semibold text-lg shadow-xl hover:shadow-2xl transition-all duration-300 flex items-center gap-2 mx-auto"
           >
-            <Link to={'/shop'}>View All Best Sellers</Link>
+           <Link to={'/shop'}> View All Feature</Link>
             <Star className="w-5 h-5" />
           </motion.button>
 
           <p className={`text-sm ${textSecondary} mt-4`}>
-            {bestSellingProducts.length}+ top-selling outfits to explore
+            {bestSellingProducts.length}+ Feature outfits to explore
           </p>
         </motion.div>
       </div>
@@ -424,5 +425,4 @@ const BestSellingProducts = () => {
     </section>
   );
 };
-
-export default BestSellingProducts;
+export default FeaturedProducts

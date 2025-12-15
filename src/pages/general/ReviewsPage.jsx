@@ -1,4 +1,4 @@
-// src/pages/Product/ReviewsPage.jsx - FIXED VERSION
+// src/pages/Product/ReviewsPage.jsx - CLEANED VERSION
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { 
@@ -10,8 +10,6 @@ import {
   MessageCircle, 
   CheckCircle,
   Clock,
-  Filter,
-  SortAsc,
   Edit,
   Trash2,
   Send,
@@ -42,11 +40,6 @@ const ReviewsPage = () => {
   // States
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [editingReview, setEditingReview] = useState(null);
-  const [filters, setFilters] = useState({
-    rating: null,
-    sortBy: 'newest',
-    verifiedOnly: false
-  });
   const [page, setPage] = useState(1);
   const limit = 10;
 
@@ -54,8 +47,9 @@ const ReviewsPage = () => {
   const { data: productData, isLoading: productLoading, error: productError } = useGetProductBySlugQuery(productId, {
     skip: !productId
   });
+const variantsData = productData?.variants || [];
 
-  // Fetch reviews with filters
+  // Fetch reviews
   const { 
     data: reviewsData, 
     isLoading: reviewsLoading,
@@ -64,10 +58,7 @@ const ReviewsPage = () => {
   } = useGetProductRatingsQuery({
     productId,
     page,
-    limit,
-    rating: filters.rating,
-    sortBy: filters.sortBy,
-    verifiedOnly: filters.verifiedOnly
+    limit
   }, {
     skip: !productId
   });
@@ -165,12 +156,6 @@ const ReviewsPage = () => {
 
   const stats = calculateRatingStats();
 
-  // Handle filter change
-  const handleFilterChange = (key, value) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setPage(1); // Reset to first page on filter change
-  };
-
   // Handle edit review
   const handleEditReview = (review) => {
     setEditingReview(review);
@@ -195,7 +180,7 @@ const ReviewsPage = () => {
     }
   };
 
-  // Handle mark as helpful - FIXED to use correct ID
+  // Handle mark as helpful
   const handleMarkHelpful = async (review) => {
     const reviewId = getReviewId(review);
     
@@ -255,7 +240,7 @@ const ReviewsPage = () => {
     return 'Product';
   };
 
-  // Theme styles
+  // Theme styles with your fonts
   const themeStyles = {
     light: {
       bg: {
@@ -264,9 +249,11 @@ const ReviewsPage = () => {
         card: 'bg-white'
       },
       text: {
-        primary: 'text-gray-900',
-        secondary: 'text-gray-600',
-        muted: 'text-gray-500'
+        primary: 'text-gray-900 font-body',
+        secondary: 'text-gray-600 font-body',
+        muted: 'text-gray-500 font-body',
+        heading: 'font-heading',
+        subheading: 'font-subheading'
       },
       border: 'border-gray-200'
     },
@@ -277,9 +264,11 @@ const ReviewsPage = () => {
         card: 'bg-gray-800'
       },
       text: {
-        primary: 'text-white',
-        secondary: 'text-gray-300',
-        muted: 'text-gray-400'
+        primary: 'text-white font-body',
+        secondary: 'text-gray-300 font-body',
+        muted: 'text-gray-400 font-body',
+        heading: 'font-heading',
+        subheading: 'font-subheading'
       },
       border: 'border-gray-700'
     }
@@ -290,11 +279,11 @@ const ReviewsPage = () => {
   // Handle errors
   if (productError || reviewsError) {
     return (
-      <div className={`min-h-screen ${currentTheme.bg.primary}`}>
+      <div className={`min-h-screen ${currentTheme.bg.primary} font-ui`}>
         <div className="container mx-auto px-4 py-16 text-center">
           <div className="max-w-md mx-auto">
             <div className="text-6xl mb-4">😕</div>
-            <h2 className={`text-2xl font-bold ${currentTheme.text.primary} mb-4`}>
+            <h2 className={`text-2xl font-bold ${currentTheme.text.primary} mb-4 ${currentTheme.text.heading}`}>
               Error Loading Reviews
             </h2>
             <p className={`${currentTheme.text.secondary} mb-6`}>
@@ -303,13 +292,13 @@ const ReviewsPage = () => {
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <Link
                 to={`/product/${productId}`}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
+                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors font-ui"
               >
                 Back to Product
               </Link>
               <button
                 onClick={() => navigate(-1)}
-                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                className="px-6 py-3 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg font-medium hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors font-ui"
               >
                 Go Back
               </button>
@@ -322,7 +311,7 @@ const ReviewsPage = () => {
 
   if (productLoading || reviewsLoading) {
     return (
-      <div className={`min-h-screen ${currentTheme.bg.primary}`}>
+      <div className={`min-h-screen ${currentTheme.bg.primary} font-ui`}>
         <div className="container mx-auto px-4 py-16">
           <div className="flex justify-center items-center h-64">
             <LoadingSpinner size="lg" />
@@ -338,7 +327,7 @@ const ReviewsPage = () => {
   const productName = getProductName();
 
   return (
-    <div className={`min-h-screen ${currentTheme.bg.primary}`}>
+    <div className={`min-h-screen ${currentTheme.bg.primary} font-ui`}>
       {/* Breadcrumb */}
       <div className={`border-b ${currentTheme.border} ${currentTheme.bg.secondary}`}>
         <div className="container mx-auto px-4 py-3">
@@ -376,7 +365,7 @@ const ReviewsPage = () => {
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-6">
             <div>
-              <h1 className={`text-2xl md:text-3xl font-bold mb-2 ${currentTheme.text.primary}`}>
+              <h1 className={`text-2xl md:text-3xl font-bold mb-2 ${currentTheme.text.primary} ${currentTheme.text.heading}`}>
                 Customer Reviews
               </h1>
               <p className={currentTheme.text.secondary}>
@@ -399,7 +388,7 @@ const ReviewsPage = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
               {/* Overall Rating */}
               <div className="text-center">
-                <div className={`text-5xl font-bold mb-2 ${currentTheme.text.primary}`}>
+                <div className={`text-5xl font-bold mb-2 ${currentTheme.text.primary} ${currentTheme.text.heading}`}>
                   {stats ? stats.average.toFixed(1) : '0.0'}
                   <span className="text-2xl font-normal">/5</span>
                 </div>
@@ -422,7 +411,7 @@ const ReviewsPage = () => {
 
               {/* Rating Distribution */}
               <div>
-                <h3 className={`font-semibold mb-4 ${currentTheme.text.primary}`}>Rating Breakdown</h3>
+                <h3 className={`font-semibold mb-4 ${currentTheme.text.primary} ${currentTheme.text.subheading}`}>Rating Breakdown</h3>
                 <div className="space-y-3">
                   {[5, 4, 3, 2, 1].map((star) => {
                     const count = stats?.distribution[star] || 0;
@@ -451,111 +440,36 @@ const ReviewsPage = () => {
             </div>
           </div>
 
-          {/* Review Form Section - Using your ReviewForm component */}
+          {/* Review Form Section */}
           {user && !userReview && !showReviewForm && (
             <div className="mb-8">
               <ReviewForm 
                 productId={productId} 
+                  productVariants={variantsData} // Pass variants array
                 onReviewSubmitted={handleReviewSubmitted}
               />
             </div>
           )}
 
-          {/* Edit Review Form Modal */}
-          {showReviewForm && editingReview && (
-            <div className="mb-8">
-              <div className={`p-6 rounded-xl ${currentTheme.bg.card} ${currentTheme.border} border`}>
-                <div className="flex items-center justify-between mb-6">
-                  <h2 className={`text-xl font-semibold ${currentTheme.text.primary}`}>
-                    Edit Your Review
-                  </h2>
-                  <button
-                    onClick={() => {
-                      setShowReviewForm(false);
-                      setEditingReview(null);
-                    }}
-                    className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-full"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
-                </div>
-                <ReviewForm 
-                  productId={productId} 
-                  onReviewSubmitted={handleReviewSubmitted}
-                  editData={editingReview}
-                />
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Filters and Write Review Button */}
-        <div className={`p-4 rounded-xl ${currentTheme.bg.card} ${currentTheme.border} border mb-6`}>
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            {/* Write Review Button - Only show if user hasn't reviewed */}
-            {user && !userReview && !showReviewForm && (
-              <button
-                onClick={() => setShowReviewForm(true)}
-                className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
-              >
-                Write a Review
-              </button>
-            )}
-
-            {/* Filters */}
-            <div className="flex flex-wrap gap-4">
-              {/* Rating Filter */}
-              <div className="flex items-center space-x-2">
-                <Filter className="w-4 h-4 text-gray-500" />
-                <select
-                  value={filters.rating || ''}
-                  onChange={(e) => handleFilterChange('rating', e.target.value || null)}
-                  className={`px-3 py-2 border ${currentTheme.border} rounded bg-transparent ${currentTheme.text.primary}`}
-                >
-                  <option value="">All Ratings</option>
-                  <option value="5">5 Stars</option>
-                  <option value="4">4 Stars</option>
-                  <option value="3">3 Stars</option>
-                  <option value="2">2 Stars</option>
-                  <option value="1">1 Star</option>
-                </select>
-              </div>
-
-              {/* Sort By */}
-              <div className="flex items-center space-x-2">
-                <SortAsc className="w-4 h-4 text-gray-500" />
-                <select
-                  value={filters.sortBy}
-                  onChange={(e) => handleFilterChange('sortBy', e.target.value)}
-                  className={`px-3 py-2 border ${currentTheme.border} rounded bg-transparent ${currentTheme.text.primary}`}
-                >
-                  <option value="newest">Newest First</option>
-                  <option value="oldest">Oldest First</option>
-                  <option value="highest">Highest Rating</option>
-                  <option value="lowest">Lowest Rating</option>
-                  <option value="mostHelpful">Most Helpful</option>
-                </select>
-              </div>
-
-              {/* Verified Only */}
-              <label className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  checked={filters.verifiedOnly}
-                  onChange={(e) => handleFilterChange('verifiedOnly', e.target.checked)}
-                  className="w-4 h-4 text-blue-600 rounded"
-                />
-                <span className={currentTheme.text.secondary}>Verified Purchase Only</span>
-              </label>
-            </div>
+        {/* Write Review Button - Only show if user hasn't reviewed */}
+        {user && !userReview && !showReviewForm && (
+          <div className="mb-6">
+            <button
+              onClick={() => setShowReviewForm(true)}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors w-full md:w-auto"
+            >
+              Write a Review
+            </button>
           </div>
-        </div>
+        )}
 
         {/* Reviews List */}
         {reviews.length === 0 ? (
           <div className={`text-center py-12 rounded-xl ${currentTheme.bg.card} ${currentTheme.border} border`}>
             <MessageCircle className="w-16 h-16 mx-auto text-gray-400 mb-4" />
-            <h3 className={`text-xl font-semibold mb-2 ${currentTheme.text.primary}`}>
+            <h3 className={`text-xl font-semibold mb-2 ${currentTheme.text.primary} ${currentTheme.text.heading}`}>
               No Reviews Yet
             </h3>
             <p className={`mb-6 ${currentTheme.text.secondary}`}>
@@ -633,13 +547,6 @@ const ReviewsPage = () => {
                       {user && isUsersReview && (
                         <div className="flex space-x-2">
                           <button
-                            onClick={() => handleEditReview(review)}
-                            className={`p-2 rounded-lg ${currentTheme.bg.secondary} ${currentTheme.text.secondary} hover:opacity-80`}
-                            title="Edit review"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-                          <button
                             onClick={() => handleDeleteReview(review)}
                             disabled={isDeleting}
                             className={`p-2 rounded-lg ${currentTheme.bg.secondary} text-red-500 hover:opacity-80 disabled:opacity-50`}
@@ -653,7 +560,7 @@ const ReviewsPage = () => {
 
                     {/* Review Title */}
                     {review.title && (
-                      <h5 className={`text-lg font-semibold mb-2 ${currentTheme.text.primary}`}>
+                      <h5 className={`text-lg font-semibold mb-2 ${currentTheme.text.primary} ${currentTheme.text.subheading}`}>
                         {review.title}
                       </h5>
                     )}

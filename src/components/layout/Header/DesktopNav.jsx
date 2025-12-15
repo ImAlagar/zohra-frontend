@@ -13,10 +13,16 @@ import {
   FiFilter,
   FiUser,
   FiShoppingBag,
-  FiGrid
+  FiGrid,
+  FiRepeat
 } from 'react-icons/fi';
+import { IoIosContacts } from "react-icons/io";
+import { GiStarsStack } from "react-icons/gi";
+
+
 import { useGetAllCategoriesQuery } from '../../../redux/services/categoryService';
 import LoadingSpinner from '../../../components/Common/LoadingSpinner';
+import { Contact, Star } from 'lucide-react';
 
 const DesktopNav = ({ 
   theme, 
@@ -154,13 +160,12 @@ const DesktopNav = ({
   const mainMenuItems = [
     { label: 'Home', path: '/', icon: <FiHome className="text-lg" /> },
     { label: 'About', path: '/about-us', icon: <FiHelpCircle className="text-lg" /> },
-    { label: 'Contact', path: '/contact', icon: <FiHelpCircle className="text-lg" /> },
+    { label: 'Contact', path: '/contact', icon: <IoIosContacts className="text-lg" /> },
+    { label: 'Reviews', path: '/reviews', icon: <GiStarsStack className="" /> },
   ];
 
   const accountMenuItems = [
     { label: 'My Orders', path: '/user/orders', icon: <FiPackage className="text-lg" /> },
-    { label: 'Wishlist', path: '/wishlist', icon: <FiHeart className="text-lg" /> },
-    { label: 'Reviews', path: '/user/reviews', icon: <FiStar className="text-lg" /> },
   ];
 
   // Check if current path is shop with specific size filter
@@ -490,34 +495,7 @@ const DesktopNav = ({
                     </button>
                   ))}
                   
-                  {/* Size Guide */}
-                  <button
-                    onClick={() => handleNavigation('/size-guide')}
-                    className={`group relative p-3 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
-                      theme === 'dark'
-                        ? 'hover:bg-gray-800 border-gray-800'
-                        : 'hover:bg-gray-50 border-gray-200'
-                    } border ${isActive('/size-guide') ? 
-                      (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
-                      : ''}`}
-                  >
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 text-lg transition-all duration-200 ${
-                      isActive('/size-guide')
-                        ? (theme === 'dark' 
-                            ? 'bg-purple-600 text-white' 
-                            : 'bg-purple-500 text-white')
-                        : (theme === 'dark' 
-                            ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
-                            : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
-                    }`}>
-                      📏
-                    </div>
-                    <span className={`text-xs font-medium ${
-                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                    }`}>
-                      Size Guide
-                    </span>
-                  </button>
+
                 </div>
 
                 {/* Advanced Filter Link */}

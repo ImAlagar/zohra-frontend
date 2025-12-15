@@ -341,7 +341,6 @@ const Shop = () => {
 
   // FIXED: Proper handleAddToCart function
   const handleAddToCart = (product) => {
-    console.log('Adding to cart from Shop:', product);
     
     // Check if product has variants
     if (!product.variants || product.variants.length === 0) {
@@ -494,12 +493,12 @@ const Shop = () => {
   }
 
   return (
-    <div className={`min-h-screen ${currentTheme.bg.primary}`}>
+    <div className={`min-h-screen ${currentTheme.bg.primary} font-ui`}>
       {/* Header with Breadcrumb */}
       <div className={`border-b ${currentTheme.border} ${currentTheme.bg.secondary}`}>
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 font-body ">
               {category && (
                 <button
                   onClick={handleBackToAll}
@@ -524,24 +523,24 @@ const Shop = () => {
             </div>
           </div>
           
-          <motion.h1
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`text-3xl md:text-4xl font-bold font-italiana ${currentTheme.text.primary}`}
-          >
-            {categoryName} Collection
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.1 }}
-            className={`text-lg mt-2 font-instrument ${currentTheme.text.secondary}`}
-          >
-            {category ? 
-              `Discover premium ${categoryName.toLowerCase()}` :
-              'Discover premium comfort and style in every piece'
-            }
-          </motion.p>
+        <motion.h1
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className={`text-3xl md:text-4xl font-bold font-heading ${currentTheme.text.primary}`}
+        >
+          {categoryName} Collection
+        </motion.h1>
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.1 }}
+          className={`text-lg mt-2 font-subheading ${currentTheme.text.secondary}`}
+        >
+          {category ? 
+            `Discover premium ${categoryName.toLowerCase()}` :
+            'Discover premium comfort and style in every piece'
+          }
+        </motion.p>
         </div>
       </div>
 
@@ -875,7 +874,7 @@ const Shop = () => {
               /* No Products Found */
               <div className={`text-center py-16 rounded-xl ${currentTheme.bg.card} ${currentTheme.shadow}`}>
                 <Filter className="w-16 h-16 mx-auto mb-4 text-gray-400" />
-                <h3 className={`text-xl font-semibold font-instrument mb-2 ${currentTheme.text.primary}`}>
+                <h3 className={`text-xl font-semibold font-subheading font-instrument mb-2 ${currentTheme.text.primary}`}>
                   No Products Found
                 </h3>
                 <p className={`mb-6 ${currentTheme.text.secondary}`}>

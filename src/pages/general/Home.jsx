@@ -9,6 +9,7 @@ import CollectionsBanner from '../../components/HomeComponents/CollectionsBanner
 import TrendingCollections from '../../components/HomeComponents/TrendingCollections';
 import BestSellingProducts from '../../components/HomeComponents/BestSellingProducts';
 import CategoryCards from '../../components/HomeComponents/CategoryCards';
+import FeaturedProducts from '../../components/HomeComponents/FeaturedProducts';
 
 const Home = () => {
   const { theme } = useTheme();
@@ -26,6 +27,7 @@ const Home = () => {
       <CollectionsBanner />
       <BestSellingProducts />
       <CTASection />
+       <FeaturedProducts />
     </div>
   );
 };

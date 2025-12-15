@@ -130,15 +130,6 @@ const OfferBanner = () => {
           </Link>
         </motion.button>
 
-        {/* Shipping Info */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.4 }}
-          className="text-sm text-gray-500 dark:text-gray-400 mt-6"
-        >
-          Free shipping on orders above ₹1999
-        </motion.p>
       </div>
 
       {/* Mobile: Bottom Image */}

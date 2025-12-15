@@ -63,7 +63,6 @@ const cartSlice = createSlice({
         quantity: Math.max(1, Number(newItem.quantity) || 1)
       };
 
-      console.log('🛒 Processed cart item:', cartItem);
       
       // ✅ FIXED: Use normalized variant IDs for comparison
       const normalizedVariantId = normalizeVariantId(
@@ -87,21 +86,17 @@ const cartSlice = createSlice({
         return sameProduct && (sameVariant || sameColor);
       });
 
-      console.log('🛒 Existing item index:', existingItemIndex);
 
       if (existingItemIndex !== -1) {
         // Update quantity if item exists
         state.items[existingItemIndex].quantity += cartItem.quantity;
-        console.log('🛒 Updated existing item quantity:', state.items[existingItemIndex]);
       } else {
         // Add new item
         state.items.push(cartItem);
-        console.log('🛒 Added new item to cart');
       }
       
       // Save to localStorage
       localStorage.setItem(getCartStorageKey(state.userId), JSON.stringify(state.items));
-      console.log('🛒 Cart saved to localStorage:', state.items);
     },
     
     updateQuantity: (state, action) => {
