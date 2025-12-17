@@ -80,7 +80,7 @@ export default function Contact() {
       icon: FaWhatsapp,
       title: "WhatsApp",
       value: "Start Chat",
-      action: () => window.open(`https://wa.me/9199403 34421?text=${encodeURIComponent("Hello Zohra! I need help with nightwear selection.")}`, "_blank"),
+      action: () => window.open(`https://wa.me/919940334421?text=${encodeURIComponent("Hello Zohra! I need help with nightwear selection.")}`, "_blank"),
       subtitle: "Instant response"
     },
     {
