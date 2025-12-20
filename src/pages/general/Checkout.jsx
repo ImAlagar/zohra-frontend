@@ -273,6 +273,7 @@ const Checkout = () => {
     return '/placeholder-product.jpg';
   };
 
+  
 const getOrderItemsData = () => {
   return cartItems.map((item) => {
     // Get the IDs

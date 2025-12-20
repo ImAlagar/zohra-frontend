@@ -19,6 +19,7 @@ import {
 import { MdDarkMode, MdLightMode } from 'react-icons/md';
 import LoadingSpinner from '../../../components/Common/LoadingSpinner';
 import { useGetAllCategoriesQuery } from '../../../redux/services/categoryService';
+import { GiStarsStack } from 'react-icons/gi';
 
 const MobileSideNav = ({
   theme,
@@ -96,24 +97,18 @@ const MobileSideNav = ({
       range: 'Size 16-18'
     },
     { 
-      label: '2XL', 
-      path: '/shop?size=2XL', 
-      icon: '2XL',
+      label: 'XXL', 
+      path: '/shop?size=XXL', 
+      icon: 'XXL',
       description: 'Bust: 40-42", Waist: 34-36"',
       range: 'Size 20-22'
     },
     { 
-      label: '3XL & Plus', 
-      path: '/shop?size=3XL', 
-      icon: '3XL+',
+      label: 'XXXL & Plus', 
+      path: '/shop?size=XXXL', 
+      icon: 'XXXL+',
       description: 'Bust: 42"+',
       range: 'Size 24+'
-    },
-    { 
-      label: 'Size Guide', 
-      path: '/size-guide', 
-      icon: '📏',
-      special: true
     },
   ];
 
@@ -121,11 +116,11 @@ const MobileSideNav = ({
     { label: 'Home', path: '/', icon: <FiHome className="text-lg" /> },
     { label: 'About', path: '/about-us', icon: <FiHelpCircle className="text-lg" /> },
     { label: 'Contact', path: '/contact', icon: <FiHelpCircle className="text-lg" /> },
+    { label: 'Reviews', path: '/reviews', icon: <GiStarsStack className="" /> },
   ];
 
   const accountMenuItems = [
     { label: 'My Orders', path: '/user/orders', icon: <FiPackage className="text-lg" /> },
-    { label: 'Reviews', path: '/user/reviews', icon: <FiStar className="text-lg" /> },
   ];
 
   // Same isActive function as DesktopNav
@@ -278,7 +273,7 @@ const MobileSideNav = ({
                 </h2>
                 <button
                   onClick={() => setMenuOpen(false)}
-                  className={`p-2 rounded-lg transition-colors ${
+                  className={`p-3 rounded-lg transition-colors text-sm ${
                     theme === 'dark' 
                       ? 'hover:bg-gray-700 text-gray-300' 
                       : 'hover:bg-gray-100 text-gray-600'
@@ -393,7 +388,7 @@ const MobileSideNav = ({
                 >
                   <div className="flex items-center space-x-3">
                     <FiGrid className="text-lg" />
-                    <span className="font-ui text-sm font-medium">Categories</span>
+                    <span className="font-ui text-sm font-medium">Shop</span>
                   </div>
                   <FiChevronRight className={`transition-transform duration-300 ${
                     expandedSections.categories ? 'rotate-90 text-purple-500' : 'text-gray-400'
@@ -581,34 +576,7 @@ const MobileSideNav = ({
                             </button>
                           ))}
                           
-                          {/* Size Guide */}
-                          <button
-                            onClick={() => handleNavigation('/size-guide')}
-                            className={`group relative p-2 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
-                              theme === 'dark'
-                                ? 'hover:bg-gray-800 border-gray-800'
-                                : 'hover:bg-gray-50 border-gray-200'
-                            } border ${isActive('/size-guide') ? 
-                              (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
-                              : ''}`}
-                          >
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-1 text-lg transition-all duration-200 ${
-                              isActive('/size-guide')
-                                ? (theme === 'dark' 
-                                    ? 'bg-purple-600 text-white' 
-                                    : 'bg-purple-500 text-white')
-                                : (theme === 'dark' 
-                                    ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
-                                    : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
-                            }`}>
-                              📏
-                            </div>
-                            <span className={`text-xs font-medium ${
-                              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                            }`}>
-                              Size Guide
-                            </span>
-                          </button>
+
                         </div>
 
                         {/* Advanced Filter Link */}

@@ -141,16 +141,16 @@ const DesktopNav = ({
       range: 'Size 16-18'
     },
     { 
-      label: '2XL', 
-      path: '/shop?size=2XL', 
-      icon: '2XL',
+      label: 'XXL', 
+      path: '/shop?size=XXL', 
+      icon: 'XXL',
       description: 'Bust: 40-42", Waist: 34-36"',
       range: 'Size 20-22'
     },
     { 
-      label: '3XL & Plus', 
-      path: '/shop?size=3XL', 
-      icon: '3XL+',
+      label: 'XXXL & Plus', 
+      path: '/shop?size=XXXL', 
+      icon: 'XXXL+',
       description: 'Bust: 42"+',
       range: 'Size 24+'
     },

@@ -1,28 +1,67 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Heart, ShoppingBag, Tag } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { addToWishlist, removeFromWishlist } from '../../redux/slices/wishlistSlice';
 import { addToCart } from '../../redux/slices/cartSlice';
 
+// Skeleton Component
+const ProductCardSkeleton = () => {
+  return (
+    <div className="group relative font-ui animate-pulse">
+      <div className="block relative rounded-xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-700">
+        {/* Image Container Skeleton */}
+        <div className="relative w-full h-[500px] overflow-hidden bg-gray-200 dark:bg-gray-700"></div>
+        
+        {/* Badges Skeleton */}
+        <div className="absolute top-3 left-3 flex flex-col gap-1">
+          <div className="px-3 py-1 bg-gray-300 dark:bg-gray-600 rounded-sm w-10"></div>
+        </div>
+
+        {/* Product Info Overlay Skeleton */}
+        <div className="absolute bottom-0 left-0 w-full p-4 bg-gradient-to-t from-gray-300/90 to-transparent dark:from-gray-700/90">
+          <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded mb-2 w-3/4"></div>
+          <div className="flex items-center justify-between">
+            <div className="space-y-1">
+              <div className="h-3 bg-gray-300 dark:bg-gray-600 rounded w-16"></div>
+              <div className="h-4 bg-gray-300 dark:bg-gray-600 rounded w-20"></div>
+            </div>
+            <div className="p-2 bg-gray-300/20 dark:bg-gray-600/20 rounded"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const ProductCard = ({
   product,
   onCartUpdate,
   selectedColor,
-  onAddToCart // Add this prop
+  onAddToCart,
+  isLoading = false // Add loading prop
 }) => {
+  // Show skeleton if loading
+  if (isLoading) {
+    return <ProductCardSkeleton />;
+  }
+
+  // Check if product is valid
+  if (!product) {
+    console.error('ProductCard: No product provided');
+    return null;
+  }
+
   const dispatch = useDispatch();
   const wishlistItems = useSelector((state) => state.wishlist.items);
-  const user = useSelector((state) => state.auth.user);
 
   // Destructure with fallbacks for both name formats
   const {
     _id,
     id,
     name,
-    title, // Add title for RelatedProducts
+    title,
     price,
     originalPrice,
     discount,
@@ -39,13 +78,15 @@ const ProductCard = ({
   // Use title if available, otherwise name
   const displayName = title || name || "Unnamed Product";
 
-  // Check if product is in wishlist
-  const isLiked = wishlistItems.some(item => 
-    item.product._id === productId || item.product.id === productId
-  );
+  // Check if product is in wishlist - memoized to prevent unnecessary re-renders
+  const isLiked = React.useMemo(() => {
+    return wishlistItems.some(item => 
+      item.product._id === productId || item.product.id === productId
+    );
+  }, [wishlistItems, productId]);
 
-  // Get all unique variant images
-  const getAllVariantImages = () => {
+  // Get all unique variant images - memoized to prevent unnecessary re-calculations
+  const variantImages = React.useMemo(() => {
     const allImages = [];
     
     // Add main image if available
@@ -76,14 +117,14 @@ const ProductCard = ({
     }
     
     return uniqueImages;
-  };
+  }, [image, variants]);
 
-  const variantImages = getAllVariantImages();
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const [localSelectedColor, setLocalSelectedColor] = useState(
     selectedColor || (colors.length > 0 ? colors[0] : null)
   );
+  const [imageLoaded, setImageLoaded] = useState(false);
 
   // Auto cycle images on hover
   useEffect(() => {
@@ -102,8 +143,13 @@ const ProductCard = ({
     setCurrentImageIndex(0);
   };
 
+  // Handle image load
+  const handleImageLoad = () => {
+    setImageLoaded(true);
+  };
+
   // Handle like button click
-  const handleLikeClick = (e) => {
+  const handleLikeClick = React.useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
     
@@ -127,27 +173,25 @@ const ProductCard = ({
       dispatch(addToWishlist(wishlistItem));
       toast.success('Added to wishlist');
     }
-  };
+  }, [productId, displayName, variantImages, price, product.category, isLiked, dispatch]);
 
-  // FIXED: Handle add to cart click
-  const handleAddToCartClick = (e) => {
+  // Handle add to cart click
+  const handleAddToCartClick = React.useCallback((e) => {
     e.preventDefault();
     e.stopPropagation();
 
     // If parent component provided onAddToCart prop, use it
     if (onAddToCart) {
-      onAddToCart(product); // Pass product to parent
+      onAddToCart(product);
       return;
     }
 
     // Otherwise use local logic
-    // Find the variant for selected color
     let variant;
     if (localSelectedColor && variants.length > 0) {
       variant = variants.find(v => v.color === localSelectedColor);
     }
 
-    // If no variant found, use first available variant
     if (!variant && variants.length > 0) {
       variant = variants[0];
     }
@@ -166,7 +210,6 @@ const ProductCard = ({
     const getNumericPrice = (priceValue) => {
       if (!priceValue) return 0;
       if (typeof priceValue === 'string') {
-        // Remove currency symbols and commas
         return parseFloat(priceValue.replace(/[₹,]/g, ''));
       }
       if (typeof priceValue === 'number') {
@@ -201,60 +244,52 @@ const ProductCard = ({
     dispatch(addToCart(cartPayload));
     toast.success('Added to cart');
     
-    // Notify parent component about cart update
     if (onCartUpdate) {
       onCartUpdate();
     }
-  };
+  }, [onAddToCart, product, localSelectedColor, variants, productId, displayName, variantImages, originalPrice, price, dispatch, onCartUpdate]);
 
   // Build the product URL with color parameter
-  const getProductUrl = () => {
+  const getProductUrl = React.useCallback(() => {
     if (!productId) return '#';
     
     let url = `/product/${productId}`;
     
-    // Add color parameter if available
     if (localSelectedColor) {
       url += `?color=${encodeURIComponent(localSelectedColor)}`;
     }
     
     return url;
-  };
-
-  // Get available colors from variants if not provided in props
-  const availableColors = colors.length > 0 ? colors : 
-    [...new Set(variants.map(v => v.color).filter(Boolean))];
+  }, [productId, localSelectedColor]);
 
   const currentImage = variantImages[currentImageIndex];
 
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      whileHover={{ y: -5 }}
-      className="group relative font-ui"
+    <div
+      className="group relative font-ui hover:-translate-y-1 transition-transform duration-300"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
     >
-      {/* Use product ID in the URL with color parameter */}
       <Link 
         to={getProductUrl()}
         className="block relative rounded-xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-700 hover:shadow-xl transition-shadow duration-300"
       >
         {/* Image Container with Auto-Cycle */}
         <div className="relative w-full h-[500px] overflow-hidden">
-          <motion.img
+          {!imageLoaded && (
+            <div className="absolute inset-0 bg-gray-200 dark:bg-gray-700 animate-pulse"></div>
+          )}
+          <img
             key={currentImageIndex}
             src={currentImage}
             alt={`${displayName} - Image ${currentImageIndex + 1}`}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
+            className={`w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+            onLoad={handleImageLoad}
             onError={(e) => {
               e.target.src = 'https://via.placeholder.com/400x500?text=Image+Error';
+              setImageLoaded(true);
             }}
+            loading="lazy"
           />
           
           {/* Image Counter (only show if multiple images) */}
@@ -265,6 +300,7 @@ const ProductCard = ({
               </span>
             </div>
           )}
+
         </div>
 
         {/* Badges (NEW, SALE) */}
@@ -282,13 +318,10 @@ const ProductCard = ({
           )}
         </div>
 
-
-
         {/* Product Info Overlay (inside image) */}
         <div className="absolute bottom-0 left-0 w-full p-4 
           bg-gradient-to-t from-black/90 to-transparent text-white z-10">
           
-          {/* FIXED: Use displayName instead of name */}
           <h3 className="text-base font-medium mb-1 line-clamp-1 font-subheading">
             {displayName}
           </h3>
@@ -308,14 +341,19 @@ const ProductCard = ({
             <button
               onClick={handleAddToCartClick}
               className="p-2 bg-white/20 backdrop-blur-md rounded hover:bg-white/30 transition-colors z-20"
+              aria-label="Add to cart"
             >
               <ShoppingBag className="w-4 h-4 text-white" />
             </button>
           </div>
         </div>
       </Link>
-    </motion.div>
+    </div>
   );
 };
+
+// Add display name for debugging
+ProductCard.displayName = 'ProductCard';
+ProductCardSkeleton.displayName = 'ProductCardSkeleton';
 
 export default ProductCard;

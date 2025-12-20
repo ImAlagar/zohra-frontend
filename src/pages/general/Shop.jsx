@@ -213,7 +213,7 @@ const Shop = () => {
   }, [category]);
 
   // Available sizes for filtering
-  const sizeOptions = ['M', 'L', 'XL', '2XL', '3XL'];
+  const sizeOptions = ['M', 'L', 'XL', 'XXL', 'XXXL'];
   const priceRanges = [
     { label: 'Under ₹500', range: [0, 500] },
     { label: '₹500 - ₹1000', range: [500, 1000] },
@@ -810,65 +810,88 @@ const Shop = () => {
 
                 {/* Pagination */}
                 {totalPages > 1 && (
-                  <div className="mt-12 flex justify-center items-center gap-4">
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className={`p-2 rounded-lg ${
-                        currentPage === 1
-                          ? 'opacity-50 cursor-not-allowed'
-                          : 'hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <ChevronLeft className="w-5 h-5" />
-                    </button>
+                  <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
 
-                    <div className="flex items-center gap-2">
-                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                        let pageNum;
-                        if (totalPages <= 5) {
-                          pageNum = i + 1;
-                        } else if (currentPage <= 3) {
-                          pageNum = i + 1;
-                        } else if (currentPage >= totalPages - 2) {
-                          pageNum = totalPages - 4 + i;
-                        } else {
-                          pageNum = currentPage - 2 + i;
-                        }
+                    {/* Mobile View */}
+                    <div className="flex sm:hidden items-center gap-4">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                        disabled={currentPage === 1}
+                        className="px-4 py-2 rounded-lg border text-sm disabled:opacity-50"
+                      >
+                        Prev
+                      </button>
 
-                        return (
-                          <button
-                            key={pageNum}
-                            onClick={() => setCurrentPage(pageNum)}
-                            className={`w-10 h-10 rounded-lg font-medium ${
-                              currentPage === pageNum
-                                ? 'bg-blue-600 text-white'
-                                : `${currentTheme.bg.secondary} ${currentTheme.text.secondary} hover:bg-gray-200 dark:hover:bg-gray-700`
-                            }`}
-                          >
-                            {pageNum}
-                          </button>
-                        );
-                      })}
+                      <span className="text-sm font-medium">
+                        {currentPage} / {totalPages}
+                      </span>
+
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className="px-4 py-2 rounded-lg border text-sm disabled:opacity-50"
+                      >
+                        Next
+                      </button>
                     </div>
 
-                    <button
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      className={`p-2 rounded-lg ${
-                        currentPage === totalPages
-                          ? 'opacity-50 cursor-not-allowed'
-                          : 'hover:bg-gray-200 dark:hover:bg-gray-700'
-                      }`}
-                    >
-                      <ChevronRight className="w-5 h-5" />
-                    </button>
+                    {/* Desktop / Tablet View */}
+                    <div className="hidden sm:flex items-center gap-4">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                        disabled={currentPage === 1}
+                        className={`p-2 rounded-lg ${
+                          currentPage === 1
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'hover:bg-gray-200 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
 
-                    <div className={`text-sm ${currentTheme.text.secondary} ml-4`}>
-                      Page {currentPage} of {totalPages}
+                      <div className="flex items-center gap-2">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) pageNum = i + 1;
+                          else if (currentPage <= 3) pageNum = i + 1;
+                          else if (currentPage >= totalPages - 2) pageNum = totalPages - 4 + i;
+                          else pageNum = currentPage - 2 + i;
+
+                          return (
+                            <button
+                              key={pageNum}
+                              onClick={() => setCurrentPage(pageNum)}
+                              className={`w-10 h-10 rounded-lg font-medium ${
+                                currentPage === pageNum
+                                  ? 'bg-blue-600 text-white'
+                                  : `${currentTheme.bg.secondary} ${currentTheme.text.secondary}`
+                              }`}
+                            >
+                              {pageNum}
+                            </button>
+                          );
+                        })}
+                      </div>
+
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                        disabled={currentPage === totalPages}
+                        className={`p-2 rounded-lg ${
+                          currentPage === totalPages
+                            ? 'opacity-50 cursor-not-allowed'
+                            : 'hover:bg-gray-200 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+
+                      <span className={`text-sm ${currentTheme.text.secondary}`}>
+                        Page {currentPage} of {totalPages}
+                      </span>
                     </div>
                   </div>
                 )}
+
               </>
             ) : (
               /* No Products Found */
