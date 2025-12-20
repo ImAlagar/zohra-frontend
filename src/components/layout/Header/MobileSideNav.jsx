@@ -73,44 +73,17 @@ const MobileSideNav = ({
   ];
 
   // Size categories with icons (same as DesktopNav)
-  const sizeCategories = [
-    { 
-      label: 'Medium (M)', 
-      path: '/shop?size=M', 
-      icon: 'M',
-      description: 'Bust: 34-36", Waist: 28-30"',
-      range: 'Size 8-10',
-      popular: true
-    },
-    { 
-      label: 'Large (L)', 
-      path: '/shop?size=L', 
-      icon: 'L',
-      description: 'Bust: 36-38", Waist: 30-32"',
-      range: 'Size 12-14'
-    },
-    { 
-      label: 'Extra Large (XL)', 
-      path: '/shop?size=XL', 
-      icon: 'XL',
-      description: 'Bust: 38-40", Waist: 32-34"',
-      range: 'Size 16-18'
-    },
-    { 
-      label: 'XXL', 
-      path: '/shop?size=XXL', 
-      icon: 'XXL',
-      description: 'Bust: 40-42", Waist: 34-36"',
-      range: 'Size 20-22'
-    },
-    { 
-      label: 'XXXL & Plus', 
-      path: '/shop?size=XXXL', 
-      icon: 'XXXL+',
-      description: 'Bust: 42"+',
-      range: 'Size 24+'
-    },
-  ];
+const sizeCategories = [
+  { path: '/shop?size=M', icon: 'M' },
+  { path: '/shop?size=L', icon: 'L' },
+  { path: '/shop?size=XL', icon: 'XL' },
+  { path: '/shop?size=XXL', icon: 'XXL' },
+  { path: '/shop?size=XXXL', icon: 'XXXL' },
+  { path: '/shop?size=4XL', icon: '4XL' },
+  { path: '/shop?size=5XL', icon: '5XL' },
+  { path: '/shop?size=6XL', icon: '6XL' },
+  { path: '/shop?size=7XL', icon: '7XL' },
+];
 
   const mainMenuItems = [
     { label: 'Home', path: '/', icon: <FiHome className="text-lg" /> },
@@ -476,144 +449,161 @@ const MobileSideNav = ({
               </div>
 
               {/* By Size Dropdown */}
-              <div className="px-4 mb-6">
+<div className="px-4 mb-6">
+  <button
+    onClick={() => toggleSection('size')}
+    className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-300 ${
+      theme === 'dark'
+        ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
+        : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+    } ${expandedSections.size || (location.pathname === '/shop' && location.search.includes('size=')) ? 
+      (theme === 'dark' ? 'bg-gray-800 text-purple-300' : 'bg-gray-100 text-purple-600') 
+      : ''}`}
+  >
+    <div className="flex items-center space-x-3">
+      <FiFilter className="text-lg" />
+      <span className="font-ui text-sm font-medium">By Size</span>
+    </div>
+    <FiChevronRight className={`transition-transform duration-300 ${
+      expandedSections.size ? 'rotate-90 text-purple-500' : 'text-gray-400'
+    }`} />
+  </button>
+
+  <AnimatePresence>
+    {expandedSections.size && (
+      <motion.div
+        initial={{ height: 0, opacity: 0 }}
+        animate={{ height: 'auto', opacity: 1 }}
+        exit={{ height: 0, opacity: 0 }}
+        className="overflow-hidden"
+      >
+        <div className="pl-4 pt-2 space-y-3">
+          {/* Size Grid Header */}
+          <div className="px-4">
+            <h3 className={`font-ui font-medium text-sm ${
+              theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+            }`}>
+              Filter by Size
+            </h3>
+            <p className={`text-xs mt-1 ${
+              theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+            }`}>
+              Find your perfect fit
+            </p>
+          </div>
+
+          {/* Size Grid - Paginated */}
+          <div className="px-2">
+            {/* First row - 6 sizes */}
+            <div className="grid grid-cols-3 gap-1.5 mb-2">
+              {sizeCategories.slice(0, 6).map((item, index) => (
                 <button
-                  onClick={() => toggleSection('size')}
-                  className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-300 ${
+                  key={index}
+                  onClick={() => handleNavigation(item.path)}
+                  className={`group relative p-2 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
                     theme === 'dark'
-                      ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
-                      : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                  } ${expandedSections.size || (location.pathname === '/shop' && location.search.includes('size=')) ? 
-                    (theme === 'dark' ? 'bg-gray-800 text-purple-300' : 'bg-gray-100 text-purple-600') 
+                      ? 'hover:bg-gray-800 border-gray-800'
+                      : 'hover:bg-gray-50 border-gray-200'
+                  } border ${isSizeFilterActive(item.icon) ? 
+                    (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
                     : ''}`}
                 >
-                  <div className="flex items-center space-x-3">
-                    <FiFilter className="text-lg" />
-                    <span className="font-ui text-sm font-medium">By Size</span>
+                  {/* Size Badge */}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold transition-all duration-200 ${
+                    isSizeFilterActive(item.icon)
+                      ? (theme === 'dark' 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-purple-500 text-white')
+                      : (theme === 'dark' 
+                          ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
+                          : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
+                  }`}>
+                    {item.icon}
                   </div>
-                  <FiChevronRight className={`transition-transform duration-300 ${
-                    expandedSections.size ? 'rotate-90 text-purple-500' : 'text-gray-400'
-                  }`} />
-                </button>
-
-                <AnimatePresence>
-                  {expandedSections.size && (
-                    <motion.div
-                      initial={{ height: 0, opacity: 0 }}
-                      animate={{ height: 'auto', opacity: 1 }}
-                      exit={{ height: 0, opacity: 0 }}
-                      className="overflow-hidden"
-                    >
-                      <div className="pl-4 pt-2 space-y-1">
-                        {/* Size Grid Header */}
-                        <div className="px-4 mb-3">
-                          <h3 className={`font-ui font-medium text-sm ${
-                            theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                          }`}>
-                            Filter by Size
-                          </h3>
-                          <p className={`text-xs mt-1 ${
-                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                          }`}>
-                            Find your perfect fit
-                          </p>
-                        </div>
-
-                        {/* Size Grid */}
-                        <div className="grid grid-cols-3 gap-2 px-4 mb-4">
-                          {sizeCategories.slice(0, 5).map((item) => (
-                            <button
-                              key={item.label}
-                              onClick={() => handleNavigation(item.path)}
-                              className={`group relative p-2 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
-                                theme === 'dark'
-                                  ? 'hover:bg-gray-800 border-gray-800'
-                                  : 'hover:bg-gray-50 border-gray-200'
-                              } border ${isSizeFilterActive(item.icon) ? 
-                                (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
-                                : ''}`}
-                            >
-                              {/* Size Badge */}
-                              <div className={`w-10 h-10 rounded-full flex items-center justify-center mb-1 text-base font-bold transition-all duration-200 ${
-                                isSizeFilterActive(item.icon)
-                                  ? (theme === 'dark' 
-                                      ? 'bg-purple-600 text-white' 
-                                      : 'bg-purple-500 text-white')
-                                  : (theme === 'dark' 
-                                      ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
-                                      : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
-                              }`}>
-                                {item.icon}
-                              </div>
-                              
-                              {/* Size Label */}
-                              <span className={`text-xs font-medium mb-0.5 ${
-                                theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                              }`}>
-                                {item.label.split(' ')[0]}
-                              </span>
-                              
-                              {/* Size Range */}
-                              <span className={`text-[10px] ${
-                                theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                              }`}>
-                                {item.range}
-                              </span>
-                              
-                              {/* Popular Badge */}
-                              {item.popular && (
-                                <span className="absolute -top-1 -right-1 px-1.5 py-0.5 text-[9px] bg-green-500 text-white rounded-full">
-                                  Popular
-                                </span>
-                              )}
-                              
-                              {/* Active Indicator */}
-                              {isSizeFilterActive(item.icon) && (
-                                <div className={`absolute bottom-0.5 w-5 h-0.5 rounded-full ${
-                                  theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
-                                }`} />
-                              )}
-                            </button>
-                          ))}
-                          
-
-                        </div>
-
-                        {/* Advanced Filter Link */}
-                        <div className="mt-4 px-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-                          <button
-                            onClick={() => handleNavigation('/shop')}
-                            className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-300 ${
-                              theme === 'dark'
-                                ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
-                                : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                            } ${isActive('/shop') ? 
-                              (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
-                              : ''}`}
-                          >
-                            <div className="flex items-center space-x-3">
-                              <FiFilter className="text-lg" />
-                              <div className="text-left">
-                                <div className="font-medium text-sm">Advanced Size Filter</div>
-                                <div className={`text-xs ${
-                                  theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                                }`}>
-                                  Filter by multiple sizes
-                                </div>
-                              </div>
-                            </div>
-                            <FiChevronRight className={`text-sm ${
-                              isActive('/shop') ? 
-                                (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
-                                : 'text-gray-400'
-                            }`} />
-                          </button>
-                        </div>
-                      </div>
-                    </motion.div>
+                  
+                  {/* Active Indicator */}
+                  {isSizeFilterActive(item.icon) && (
+                    <div className={`absolute bottom-1 w-5 h-0.5 rounded-full ${
+                      theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
+                    }`} />
                   )}
-                </AnimatePresence>
+                </button>
+              ))}
+            </div>
+            
+            {/* Second row - remaining 3 sizes */}
+            <div className="grid grid-cols-3 gap-1.5">
+              {sizeCategories.slice(6).map((item, index) => (
+                <button
+                  key={index + 6}
+                  onClick={() => handleNavigation(item.path)}
+                  className={`group relative p-2 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
+                    theme === 'dark'
+                      ? 'hover:bg-gray-800 border-gray-800'
+                      : 'hover:bg-gray-50 border-gray-200'
+                  } border ${isSizeFilterActive(item.icon) ? 
+                    (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
+                    : ''}`}
+                >
+                  {/* Size Badge */}
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-base font-bold transition-all duration-200 ${
+                    isSizeFilterActive(item.icon)
+                      ? (theme === 'dark' 
+                          ? 'bg-purple-600 text-white' 
+                          : 'bg-purple-500 text-white')
+                      : (theme === 'dark' 
+                          ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
+                          : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
+                  }`}>
+                    {item.icon}
+                  </div>
+                  
+                  {/* Active Indicator */}
+                  {isSizeFilterActive(item.icon) && (
+                    <div className={`absolute bottom-1 w-5 h-0.5 rounded-full ${
+                      theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
+                    }`} />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Advanced Filter Link */}
+          <div className="mt-4 pt-3 border-t border-gray-200 dark:border-gray-800 px-4">
+            <button
+              onClick={() => handleNavigation('/shop')}
+              className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-300 ${
+                theme === 'dark'
+                  ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
+                  : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+              } ${isActive('/shop') ? 
+                (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
+                : ''}`}
+            >
+              <div className="flex items-center space-x-3">
+                <FiFilter className="text-lg" />
+                <div className="text-left">
+                  <div className="font-medium text-sm">Advanced Size Filter</div>
+                  <div className={`text-xs ${
+                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                  }`}>
+                    Filter by multiple sizes
+                  </div>
+                </div>
               </div>
+              <FiChevronRight className={`text-sm ${
+                isActive('/shop') ? 
+                  (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
+                  : 'text-gray-400'
+              }`} />
+            </button>
+          </div>
+        </div>
+      </motion.div>
+    )}
+  </AnimatePresence>
+</div>
 
               {/* Account Dropdown (for logged in users) */}
               {isLoggedIn && (

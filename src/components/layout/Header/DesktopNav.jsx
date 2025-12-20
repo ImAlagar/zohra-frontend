@@ -22,7 +22,6 @@ import { GiStarsStack } from "react-icons/gi";
 
 import { useGetAllCategoriesQuery } from '../../../redux/services/categoryService';
 import LoadingSpinner from '../../../components/Common/LoadingSpinner';
-import { Contact, Star } from 'lucide-react';
 
 const DesktopNav = ({ 
   theme, 
@@ -117,45 +116,17 @@ const DesktopNav = ({
 
 
   // Size categories with icons
-  const sizeCategories = [
-    { 
-      label: 'Medium (M)', 
-      path: '/shop?size=M', 
-      icon: 'M',
-      description: 'Bust: 34-36", Waist: 28-30"',
-      range: 'Size 8-10',
-      popular: true
-    },
-    { 
-      label: 'Large (L)', 
-      path: '/shop?size=L', 
-      icon: 'L',
-      description: 'Bust: 36-38", Waist: 30-32"',
-      range: 'Size 12-14'
-    },
-    { 
-      label: 'Extra Large (XL)', 
-      path: '/shop?size=XL', 
-      icon: 'XL',
-      description: 'Bust: 38-40", Waist: 32-34"',
-      range: 'Size 16-18'
-    },
-    { 
-      label: 'XXL', 
-      path: '/shop?size=XXL', 
-      icon: 'XXL',
-      description: 'Bust: 40-42", Waist: 34-36"',
-      range: 'Size 20-22'
-    },
-    { 
-      label: 'XXXL & Plus', 
-      path: '/shop?size=XXXL', 
-      icon: 'XXXL+',
-      description: 'Bust: 42"+',
-      range: 'Size 24+'
-    },
-
-  ];
+const sizeCategories = [
+  { path: '/shop?size=M', icon: 'M' },
+  { path: '/shop?size=L', icon: 'L' },
+  { path: '/shop?size=XL', icon: 'XL' },
+  { path: '/shop?size=XXL', icon: 'XXL' },
+  { path: '/shop?size=XXXL', icon: 'XXXL' },
+  { path: '/shop?size=4XL', icon: '4XL' },
+  { path: '/shop?size=5XL', icon: '5XL' },
+  { path: '/shop?size=6XL', icon: '6XL' },
+  { path: '/shop?size=7XL', icon: '7XL' },
+];
 
   const mainMenuItems = [
     { label: 'Home', path: '/', icon: <FiHome className="text-lg" /> },
@@ -410,127 +381,143 @@ const DesktopNav = ({
               }`} />
             )}
           </button>
+            <AnimatePresence>
+              {expandedSections.size && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                  className={`absolute top-full left-0 mt-2 w-[320px] max-w-[calc(100vw-2rem)] py-4 rounded-xl shadow-2xl z-50 ${
+                    theme === 'dark'
+                      ? 'bg-gray-900 border border-gray-800'
+                      : 'bg-white border border-gray-200'
+                  }`}
+                >
+                  {/* Size Grid Header */}
+                  <div className="px-4 sm:px-5 mb-3">
+                    <h3 className={`font-ui font-medium text-sm ${
+                      theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
+                    }`}>
+                      Filter by Size
+                    </h3>
+                    <p className={`text-xs mt-1 ${
+                      theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                    }`}>
+                      Find your perfect fit
+                    </p>
+                  </div>
 
-          <AnimatePresence>
-            {expandedSections.size && (
-              <motion.div
-                initial={{ opacity: 0, y: -10, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -10, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className={`absolute top-full left-0 mt-2 w-80 py-4 rounded-xl shadow-2xl z-50 ${
-                  theme === 'dark'
-                    ? 'bg-gray-900 border border-gray-800'
-                    : 'bg-white border border-gray-200'
-                }`}
-              >
-                {/* Size Grid Header */}
-                <div className="px-5 mb-3">
-                  <h3 className={`font-ui font-medium text-sm ${
-                    theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
-                    Filter by Size
-                  </h3>
-                  <p className={`text-xs mt-1 ${
-                    theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                  }`}>
-                    Find your perfect fit
-                  </p>
-                </div>
+                  {/* Size Grid - Responsive */}
+                  <div className="px-3 sm:px-4">
+                    {/* First row - 6 sizes */}
+                    <div className="grid grid-cols-3 gap-2 mb-3">
+                      {sizeCategories.slice(0, 6).map((item, index) => (
+                        <button
+                          key={index}
+                          onClick={() => handleNavigation(item.path)}
+                          className={`group relative p-2 sm:p-3 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
+                            theme === 'dark'
+                              ? 'hover:bg-gray-800 border-gray-800'
+                              : 'hover:bg-gray-50 border-gray-200'
+                          } border ${isSizeFilterActive(item.icon) ? 
+                            (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
+                            : ''}`}
+                        >
+                          {/* Size Badge */}
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-lg font-bold transition-all duration-200 ${
+                            isSizeFilterActive(item.icon)
+                              ? (theme === 'dark' 
+                                  ? 'bg-purple-600 text-white' 
+                                  : 'bg-purple-500 text-white')
+                              : (theme === 'dark' 
+                                  ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
+                                  : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
+                          }`}>
+                            {item.icon}
+                          </div>
+                          
+                          {/* Active Indicator */}
+                          {isSizeFilterActive(item.icon) && (
+                            <div className={`absolute bottom-1 w-4 sm:w-6 h-0.5 rounded-full ${
+                              theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
+                            }`} />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    
+                    {/* Second row - remaining 3 sizes */}
+                    <div className="grid grid-cols-3 gap-2">
+                      {sizeCategories.slice(6).map((item, index) => (
+                        <button
+                          key={index + 6}
+                          onClick={() => handleNavigation(item.path)}
+                          className={`group relative p-2 sm:p-3 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
+                            theme === 'dark'
+                              ? 'hover:bg-gray-800 border-gray-800'
+                              : 'hover:bg-gray-50 border-gray-200'
+                          } border ${isSizeFilterActive(item.icon) ? 
+                            (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
+                            : ''}`}
+                        >
+                          {/* Size Badge */}
+                          <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center text-base sm:text-lg font-bold transition-all duration-200 ${
+                            isSizeFilterActive(item.icon)
+                              ? (theme === 'dark' 
+                                  ? 'bg-purple-600 text-white' 
+                                  : 'bg-purple-500 text-white')
+                              : (theme === 'dark' 
+                                  ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
+                                  : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
+                          }`}>
+                            {item.icon}
+                          </div>
+                          
+                          {/* Active Indicator */}
+                          {isSizeFilterActive(item.icon) && (
+                            <div className={`absolute bottom-1 w-4 sm:w-6 h-0.5 rounded-full ${
+                              theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
+                            }`} />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
 
-                {/* Size Grid */}
-                <div className="grid grid-cols-3 gap-2 px-4">
-                  {sizeCategories.slice(0, 5).map((item) => (
+                  {/* Advanced Filter Link */}
+                  <div className="mt-4 px-4 pt-4 border-t border-gray-200 dark:border-gray-800">
                     <button
-                      key={item.label}
-                      onClick={() => handleNavigation(item.path)}
-                      className={`group relative p-3 rounded-lg transition-all duration-200 flex flex-col items-center justify-center ${
+                      onClick={() => handleNavigation('/shop')}
+                      className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 ${
                         theme === 'dark'
-                          ? 'hover:bg-gray-800 border-gray-800'
-                          : 'hover:bg-gray-50 border-gray-200'
-                      } border ${isSizeFilterActive(item.icon) ? 
-                        (theme === 'dark' ? 'bg-purple-900/30 border-purple-700' : 'bg-purple-50 border-purple-200') 
+                          ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
+                          : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
+                      } ${isActive('/shop') ? 
+                        (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
                         : ''}`}
                     >
-                      {/* Size Badge */}
-                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-2 text-lg font-bold transition-all duration-200 ${
-                        isSizeFilterActive(item.icon)
-                          ? (theme === 'dark' 
-                              ? 'bg-purple-600 text-white' 
-                              : 'bg-purple-500 text-white')
-                          : (theme === 'dark' 
-                              ? 'bg-gray-800 text-gray-300 group-hover:bg-gray-700' 
-                              : 'bg-gray-100 text-gray-700 group-hover:bg-gray-200')
-                      }`}>
-                        {item.icon}
-                      </div>
-                      
-                      {/* Size Label */}
-                      <span className={`text-xs font-medium mb-1 ${
-                        theme === 'dark' ? 'text-gray-300' : 'text-gray-700'
-                      }`}>
-                        {item.label.split(' ')[0]}
-                      </span>
-                      
-                      {/* Size Range */}
-                      <span className={`text-xs ${
-                        theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                      }`}>
-                        {item.range}
-                      </span>
-                      
-                      {/* Popular Badge */}
-                      {item.popular && (
-                        <span className="absolute -top-1 -right-1 px-2 py-0.5 text-[10px] bg-green-500 text-white rounded-full">
-                          Popular
-                        </span>
-                      )}
-                      
-                      {/* Active Indicator */}
-                      {isSizeFilterActive(item.icon) && (
-                        <div className={`absolute bottom-1 w-6 h-0.5 rounded-full ${
-                          theme === 'dark' ? 'bg-purple-400' : 'bg-purple-500'
-                        }`} />
-                      )}
-                    </button>
-                  ))}
-                  
-
-                </div>
-
-                {/* Advanced Filter Link */}
-                <div className="mt-4 px-4 pt-4 border-t border-gray-200 dark:border-gray-800">
-                  <button
-                    onClick={() => handleNavigation('/shop')}
-                    className={`flex items-center justify-between w-full px-4 py-3 rounded-lg transition-all duration-200 ${
-                      theme === 'dark'
-                        ? 'hover:bg-gray-800 text-gray-300 hover:text-white'
-                        : 'hover:bg-gray-100 text-gray-700 hover:text-gray-900'
-                    } ${isActive('/shop') ? 
-                      (theme === 'dark' ? 'bg-purple-900/30 text-purple-300' : 'bg-purple-50 text-purple-600') 
-                      : ''}`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <FiFilter className="text-lg" />
-                      <div className="text-left">
-                        <div className="font-medium text-sm">Advanced Size Filter</div>
-                        <div className={`text-xs ${
-                          theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
-                        }`}>
-                          Filter by multiple sizes
+                      <div className="flex items-center space-x-3">
+                        <FiFilter className="text-lg" />
+                        <div className="text-left">
+                          <div className="font-medium text-sm">Advanced Size Filter</div>
+                          <div className={`text-xs ${
+                            theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
+                          }`}>
+                            Filter by multiple sizes
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <FiChevronRight className={`text-sm ${
-                      isActive('/shop') ? 
-                        (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
-                        : 'text-gray-400'
-                    }`} />
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
+                      <FiChevronRight className={`text-sm ${
+                        isActive('/shop') ? 
+                          (theme === 'dark' ? 'text-purple-400' : 'text-purple-500') 
+                          : 'text-gray-400'
+                      }`} />
+                    </button>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
         </div>
 
         {/* Account Dropdown (for logged in users) */}

@@ -213,7 +213,7 @@ const Shop = () => {
   }, [category]);
 
   // Available sizes for filtering
-  const sizeOptions = ['M', 'L', 'XL', 'XXL', 'XXXL'];
+  const sizeOptions = ['M', 'L', 'XL', 'XXL', 'XXXL','4XL', '5XL', '6XL', '7XL'];
   const priceRanges = [
     { label: 'Under ₹500', range: [0, 500] },
     { label: '₹500 - ₹1000', range: [500, 1000] },
