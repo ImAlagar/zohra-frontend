@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <!-- Premium Nightwear Fonts -->
+    <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Lexend:wght@300;400;500;600;700&family=Manrope:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
     <title>Zohra</title>
@@ -27,17 +27,18 @@
       fbq('init', '841628528867215');
       fbq('track', 'PageView');
     </script>
-    <noscript>
-      <img height="1" width="1" style="display:none"
-      src="https://www.facebook.com/tr?id=841628528867215&ev=PageView&noscript=1"/>
-    </noscript>
-    <!-- End Meta Pixel Code -->
-
+    <!-- END Meta Pixel Script -->
   </head>
 
   <body>
     <div id="root"></div>
     <div id="modal-root"></div>
+
+    <!-- Move noscript HERE -->
+    <noscript>
+      <img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=841628528867215&ev=PageView&noscript=1"/>
+    </noscript>
 
     <script type="module" src="/src/main.jsx"></script>
   </body>
