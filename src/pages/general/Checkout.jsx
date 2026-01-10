@@ -572,6 +572,15 @@ const getOrderItemsData = () => {
             status: 'confirmed'
           };
           
+
+            if (window.fbq) {
+            window.fbq('track', 'Purchase', {
+              value: Number(order.totalAmount.toFixed(2)),
+              currency: 'INR'
+            });
+          }
+  
+
           toast.success("Payment successful! Order confirmed.");
           handleOrderSuccess(successData);
         }
@@ -618,6 +627,13 @@ const getOrderItemsData = () => {
           paymentMethod: 'COD',
           status: 'confirmed'
         };
+
+          if (window.fbq) {
+          window.fbq('track', 'Purchase', {
+            value: Number(result.data.totalAmount.toFixed(2)),
+            currency: 'INR'
+          });
+        }
         
         toast.success("Order placed successfully!");
         handleOrderSuccess(successData);
@@ -638,6 +654,12 @@ const getOrderItemsData = () => {
   };
 
   const handleOrderSuccess = (successData) => {
+      if (window.fbq) {
+    window.fbq('track', 'Purchase', {
+      value: Number(successData.totalAmount.toFixed(2)), // FINAL amount
+      currency: 'INR'
+    });
+  }
     setOrderCompleted(true);
     localStorage.setItem('orderSuccessData', JSON.stringify(successData));
     dispatch(clearCart());
