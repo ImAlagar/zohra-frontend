@@ -158,7 +158,7 @@ export const router = createBrowserRouter([
         {
       path: "/checkout",
       element: (
-        <ProtectedRoute allowedRoles={['CUSTOMER', 'WHOLESALER']}>
+        <ProtectedRoute allowedRoles={['CUSTOMER', 'WHOLESALER','ADMIN']}>
           <Checkout />
         </ProtectedRoute>
       )

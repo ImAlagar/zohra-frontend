@@ -14,16 +14,23 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
     );
   }
 
-  if (!isAuthenticated) {
-    // Redirect to appropriate login based on the route
-    if (location.pathname.includes('/dashboard/wholesaler')) {
-      return <Navigate to="/wholesaler/login" state={{ from: location }} replace />;
-    } else if (location.pathname.includes('/dashboard')) {
-      return <Navigate to="/admin/login" state={{ from: location }} replace />;
-    } else {
-      return <Navigate to="/login" state={{ from: location }} replace />;
-    }
+if (!isAuthenticated) {
+
+  // For payment success page → redirect home
+  if (location.pathname === "/payment-success") {
+    return <Navigate to="/" replace />;
   }
+
+  // Redirect to appropriate login based on the route
+  if (location.pathname.includes('/dashboard/wholesaler')) {
+    return <Navigate to="/wholesaler/login" state={{ from: location }} replace />;
+  } else if (location.pathname.includes('/dashboard')) {
+    return <Navigate to="/admin/login" state={{ from: location }} replace />;
+  } else {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+}
+
 
   if (allowedRoles.length > 0 && !allowedRoles.includes(user?.role)) {
     
